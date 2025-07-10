@@ -4,16 +4,17 @@ from argparse import ArgumentParser
 import os
 from src.utils import unique_xfg_sym, split_list
 import networkx as nx
+import pickle
 from src.preprocess.symbolizer import clean_gadget
 from tqdm import tqdm
-from pytorch_lightning import seed_everything
+from lightning.pytorch import seed_everything
 from omegaconf import OmegaConf, DictConfig
 from multiprocessing import cpu_count, Manager, Pool, Queue
 import functools
 import dataclasses
 from src.preprocess.symbolizer import tokenize_code_line
 
-USE_CPU = cpu_count()
+USE_CPU =  max(1, cpu_count() // 2)
 
 
 def configure_arg_parser() -> ArgumentParser:
@@ -26,6 +27,22 @@ def configure_arg_parser() -> ArgumentParser:
     return arg_parser
 
 
+def write_gpickle(graph, filename):
+    try:
+        with open(filename, 'wb') as f:
+            pickle.dump(graph, f, pickle.HIGHEST_PROTOCOL)
+    except Exception as e:
+        print(f"Error writing to gpickle file: {e}")
+
+def read_gpickle(filename):
+    try:
+        with open(filename, 'rb') as f:
+            graph = pickle.load(f)
+        return graph
+    except Exception as e:
+        print(f"Error reading gpickle file: {e}")
+        return None
+    
 def unique_data(cweid: str, root: str):
     """
     unique raw data without symbolization
@@ -83,7 +100,7 @@ def handle_queue_message(queue: Queue):
             os.system(f"rm {message.xfg_path}")
         else:
             if message.XFG is not None:
-                nx.write_gpickle(message.XFG, message.xfg_path)
+                write_gpickle(message.XFG, message.xfg_path)
                 xfg_ct += 1
     return xfg_ct
 
@@ -105,7 +122,7 @@ def process_parallel(testcaseid: str, queue: Queue, XFG_root_path: str, split_to
         xfg_ps = os.listdir(k_root_path)
         for xfg_p in xfg_ps:
             xfg_path = join(k_root_path, xfg_p)
-            xfg: nx.DiGraph = nx.read_gpickle(xfg_path)
+            xfg: nx.DiGraph = read_gpickle(xfg_path)
             for idx, n in enumerate(xfg):
                 if "code_sym_token" in xfg.nodes[n]:
                     return testcaseid

@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import networkx as nx
+import pickle
 from typing import List, Set, Tuple, Dict
 from os.path import join, exists
 from argparse import ArgumentParser
@@ -10,8 +11,11 @@ import dataclasses
 from omegaconf import OmegaConf, DictConfig
 from multiprocessing import cpu_count, Manager, Pool, Queue
 import functools
+import tempfile
+import pickle
+import traceback
 
-USE_CPU = cpu_count()
+USE_CPU = max(1, cpu_count() // 2)  # Giảm số process để tránh overload
 
 
 def extract_line_number(idx: int, nodes: List) -> int:
@@ -60,8 +64,14 @@ def read_csv(csv_file_path: str) -> List:
                 instance[hp] = content
             data.append(instance)
         return data
-
-
+    
+def write_gpickle(graph, path):
+    try:
+        with open(path, 'wb') as f:
+            pickle.dump(graph, f)
+    except Exception as e:
+        print(f"Error writing to gpickle file: {e}")
+    
 def extract_nodes_with_location_info(nodes):
     """
     Will return an array identifying the indices of those nodes in nodes array
@@ -109,6 +119,7 @@ def build_PDG(code_path: str, sensi_api_path: str,
         sensi_api_set = set([api.strip() for api in f.read().split(",")])
     if not exists(nodes_path) or not exists(edges_path):
         return None, None
+    
     nodes = read_csv(nodes_path)
     edges = read_csv(edges_path)
     call_lines = set()
@@ -279,17 +290,24 @@ def dump_XFG(res: Dict[str, List[nx.DiGraph]], out_root_path: str,
     Returns:
     """
     if res is None:
-        return
+        return 0
     testcase_out_root_path = join(out_root_path, testcaseid)
     if not exists(testcase_out_root_path):
         os.makedirs(testcase_out_root_path)
+    
+    xfg_count = 0
     for k in res:
         k_root_path = join(testcase_out_root_path, k)
         if not exists(k_root_path):
             os.makedirs(k_root_path)
         for XFG in res[k]:
             out_path = join(k_root_path, f"{XFG.graph['key_line']}.xfg.pkl")
-            nx.write_gpickle(XFG, out_path)
+            try:
+                write_gpickle(XFG, out_path)
+                xfg_count += 1
+            except Exception as e:
+                print(f"Error saving XFG {out_path}: {e}")
+    return xfg_count
 
 
 def configure_arg_parser() -> ArgumentParser:
@@ -302,71 +320,55 @@ def configure_arg_parser() -> ArgumentParser:
     return arg_parser
 
 
-@dataclasses.dataclass
-class QueueMessage:
-    XFG_res: Dict
-    out_root_path: str
-    testcaseid: str
-    is_finished: bool = False
-
-
-def handle_queue_message(queue: Queue):
+def process_single_testcase(testcase_id: str, codeIDtoPath: Dict, cwe_root: str,
+                           source_root_path: str, out_root_path: str, doneIDs: Set):
     """
-
+    Process a single testcase without multiprocessing queue
+    
     Args:
-        queue:
-
+        testcase_id: testcase id
+        codeIDtoPath: code id to path mapping
+        cwe_root: cwe root path
+        source_root_path: source root path  
+        out_root_path: output root path
+        doneIDs: set of done IDs
+    
     Returns:
-
+        tuple: (testcase_id, xfg_count, success)
     """
-    xfg_ct = 0
-    while True:
-        message: QueueMessage = queue.get()
-        if message.is_finished:
-            break
-        if message.XFG_res is not None:
-            dump_XFG(message.XFG_res, message.out_root_path, message.testcaseid)
-            for k in message.XFG_res:
-                xfg_ct += len(message.XFG_res[k])
-    return xfg_ct
+    if testcase_id in doneIDs:
+        return testcase_id, 0, True
+    
+    try:
+        total_xfg_count = 0
+        if testcase_id in codeIDtoPath:
+            file_map = codeIDtoPath[testcase_id]
+            for file_path in file_map:
+                vul_lines = file_map[file_path]
+                csv_path = join(cwe_root, "csv", os.path.abspath(source_root_path)[1:],
+                                file_path)
+                source_path = join(source_root_path, file_path)
+                try:
+                    PDG, key_line_map = build_PDG(csv_path, "data/sensiAPI.txt",
+                                                  source_path)
+                    res = build_XFG(PDG, key_line_map, vul_lines)
+                    xfg_count = dump_XFG(res, out_root_path, testcase_id)
+                    total_xfg_count += xfg_count
+                except Exception as e:
+                    print(f"Error processing file {file_path} in testcase {testcase_id}: {e}")
+                    continue
+        
+        return testcase_id, total_xfg_count, True
+    except Exception as e:
+        print(f"Error processing testcase {testcase_id}: {e}")
+        traceback.print_exc()
+        return testcase_id, 0, False
 
 
-def process_parallel(testcase: ET.Element, queue: Queue, doneIDs: Set, codeIDtoPath: Dict, cwe_root: str,
-                     source_root_path: str,
-                     out_root_path: str):
+def generate_sequential(config_path: str):
     """
-
-    Args:
-        testcase:
-        doneIDs:
-        codeIDtoPath:
-        cwe_root:
-        source_root_path:
-        out_root_path:
-
-    Returns:
-
+    Sequential version without multiprocessing to avoid EOFError
     """
-    testcaseid = testcase.attrib["id"]
-    if testcaseid in doneIDs:
-        return testcaseid
-    if testcaseid in codeIDtoPath:
-        file_map = codeIDtoPath[testcaseid]
-        for file_path in file_map:
-            # print(file_path)
-            vul_lines = file_map[file_path]
-            csv_path = join(cwe_root, "csv", os.path.abspath(source_root_path)[1:],
-                            file_path)
-            source_path = join(source_root_path, file_path)
-            PDG, key_line_map = build_PDG(csv_path, "data/sensiAPI.txt",
-                                          source_path)
-            res = build_XFG(PDG, key_line_map, vul_lines)
-            queue.put(QueueMessage(res, out_root_path, testcaseid))
-            # dump_XFG(res, out_root_path, testcaseid)
-    return testcaseid
-
-
-def generate(config_path: str):
     config = cast(DictConfig, OmegaConf.load(config_path))
     root = config.data_folder
     cweid = config.dataset.name
@@ -383,36 +385,118 @@ def generate(config_path: str):
         os.makedirs(out_root_path)
     if not exists(join(cwe_root, "doneID.txt")):
         os.system("touch {}".format(join(cwe_root, "doneID.txt")))
+    
     with open(join(cwe_root, "doneID.txt"), "r", encoding="utf-8") as f:
         doneIDs = set(f.read().split(","))
 
-    testcase_len = len(testcases)
-    with Manager() as m:
-        message_queue = m.Queue()  # type: ignore
-        pool = Pool(USE_CPU)
-        xfg_ct = pool.apply_async(handle_queue_message, (message_queue,))
-        process_func = functools.partial(process_parallel, queue=message_queue, doneIDs=doneIDs,
-                                         codeIDtoPath=codeIDtoPath,
-                                         cwe_root=cwe_root, source_root_path=source_root_path,
-                                         out_root_path=out_root_path)
-        testcaseids_done: List = [
-            testcaseid
-            for testcaseid in tqdm(
-                pool.imap_unordered(process_func, testcases),
-                desc=f"testcases: ",
-                total=testcase_len,
-            )
-        ]
+    testcase_ids = [tc.attrib["id"] for tc in testcases]
+    total_xfg_count = 0
+    
+    for testcase_id in tqdm(testcase_ids, desc="Processing testcases"):
+        testcase_id, xfg_count, success = process_single_testcase(
+            testcase_id, codeIDtoPath, cwe_root, source_root_path, 
+            out_root_path, doneIDs
+        )
+        
+        if success:
+            total_xfg_count += xfg_count
+            # Update done IDs
+            with open(join(cwe_root, "doneID.txt"), 'a', encoding="utf-8") as f:
+                f.write(str(testcase_id))
+                f.write(",")
+    
+    print(f"Total {total_xfg_count} XFGs generated!")
 
-        message_queue.put(QueueMessage(None, None, None, True))
-        pool.close()
-        pool.join()
-    print(f"total {xfg_ct.get()} XFGs!")
-    for testcaseid in testcaseids_done:
-        with open(join(cwe_root, "doneID.txt"), 'a',
-                  encoding="utf-8") as f:
-            f.write(str(testcaseid))
-            f.write(",")
+
+def generate_with_smaller_batches(config_path: str):
+    """
+    Use smaller batch multiprocessing to reduce memory pressure
+    """
+    config = cast(DictConfig, OmegaConf.load(config_path))
+    root = config.data_folder
+    cweid = config.dataset.name
+    cwe_root = join(root, cweid)
+    source_root_path = join(cwe_root, "source-code")
+    out_root_path = join(cwe_root, "XFG")
+    xml_path = join(source_root_path, "manifest.xml")
+
+    tree = ET.ElementTree(file=xml_path)
+    testcases = tree.findall("testcase")
+    codeIDtoPath = getCodeIDtoPathDict(testcases, source_root_path)
+
+    if not exists(out_root_path):
+        os.makedirs(out_root_path)
+    if not exists(join(cwe_root, "doneID.txt")):
+        os.system("touch {}".format(join(cwe_root, "doneID.txt")))
+    
+    with open(join(cwe_root, "doneID.txt"), "r", encoding="utf-8") as f:
+        doneIDs = set(f.read().split(","))
+
+    testcase_ids = [tc.attrib["id"] for tc in testcases if tc.attrib["id"] not in doneIDs]
+    
+    # Process in smaller batches
+    batch_size = 100  # Smaller batch size
+    total_xfg_count = 0
+    
+    for i in range(0, len(testcase_ids), batch_size):
+        batch = testcase_ids[i:i + batch_size]
+        print(f"Processing batch {i//batch_size + 1}/{(len(testcase_ids) + batch_size - 1)//batch_size}")
+        
+        with Pool(processes=min(4, USE_CPU)) as pool:  # Limit processes
+            process_func = functools.partial(
+                process_single_testcase,
+                codeIDtoPath=codeIDtoPath,
+                cwe_root=cwe_root,
+                source_root_path=source_root_path,
+                out_root_path=out_root_path,
+                doneIDs=doneIDs
+            )
+            
+            try:
+                results = list(tqdm(
+                    pool.imap(process_func, batch),
+                    desc=f"Batch progress",
+                    total=len(batch)
+                ))
+                
+                # Update done IDs and count
+                for testcase_id, xfg_count, success in results:
+                    if success:
+                        total_xfg_count += xfg_count
+                        with open(join(cwe_root, "doneID.txt"), 'a', encoding="utf-8") as f:
+                            f.write(str(testcase_id))
+                            f.write(",")
+                        doneIDs.add(testcase_id)
+                
+            except Exception as e:
+                print(f"Error in batch processing: {e}")
+                # Fall back to sequential for this batch
+                for testcase_id in batch:
+                    testcase_id, xfg_count, success = process_single_testcase(
+                        testcase_id, codeIDtoPath, cwe_root, source_root_path,
+                        out_root_path, doneIDs
+                    )
+                    if success:
+                        total_xfg_count += xfg_count
+                        with open(join(cwe_root, "doneID.txt"), 'a', encoding="utf-8") as f:
+                            f.write(str(testcase_id))
+                            f.write(",")
+                        doneIDs.add(testcase_id)
+    
+    print(f"Total {total_xfg_count} XFGs generated!")
+
+
+def generate(config_path: str):
+    """
+    Main generate function with fallback strategies
+    """
+    try:
+        print("Attempting batch multiprocessing...")
+        generate_with_smaller_batches(config_path)
+    except Exception as e:
+        print(f"Batch multiprocessing failed: {e}")
+        print("Falling back to sequential processing...")
+        generate_sequential(config_path)
 
 
 if __name__ == "__main__":

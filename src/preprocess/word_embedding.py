@@ -4,14 +4,30 @@ from omegaconf import OmegaConf, DictConfig
 import json
 import networkx as nx
 from gensim.models import Word2Vec, KeyedVectors
+from gensim.models.callbacks import CallbackAny2Vec
 from os import cpu_count
 from src.utils import PAD, MASK, UNK
 from tqdm import tqdm
 from multiprocessing import cpu_count, Manager, Pool
 import functools
+from src.utils import read_gpickle
 
 SPECIAL_TOKENS = [PAD, UNK, MASK]
-USE_CPU = cpu_count()
+USE_CPU = max(1, cpu_count() // 2)  
+
+
+class LossLogger(CallbackAny2Vec):
+    """Callback to log loss during training"""
+    def __init__(self):
+        self.epoch = 0
+        self.loss_to_be_subed = 0
+
+    def on_epoch_end(self, model):
+        loss = model.get_latest_training_loss()
+        loss_now = loss - self.loss_to_be_subed
+        self.loss_to_be_subed = loss
+        print(f'Loss after epoch {self.epoch}: {loss_now}')
+        self.epoch += 1
 
 
 def process_parallel(path: str, split_token: bool):
@@ -23,7 +39,7 @@ def process_parallel(path: str, split_token: bool):
     Returns:
 
     """
-    xfg = nx.read_gpickle(path)
+    xfg = read_gpickle(path)
     tokens_list = list()
     for ln in xfg:
         code_tokens = xfg.nodes[ln]["code_sym_token"]
@@ -45,7 +61,7 @@ def train_word_embedding(config_path: str):
 
     """
     config = cast(DictConfig, OmegaConf.load(config_path))
-    cweid = config.dataset.name
+    cweid = config.dataset.name_word2vec
     root = config.data_folder
     train_json = f"{root}/{cweid}/train.json"
     with open(train_json, "r") as f:
@@ -66,14 +82,66 @@ def train_word_embedding(config_path: str):
         ]
         pool.close()
         pool.join()
+    
     for token_l in tokens:
         tokens_list.extend(token_l)
+
+
+    # UAV-specific token groups for better context
+    uav_contexts = [
+        # Flight control context
+        ['autopilot', 'flight_mode', 'stabilize', 'loiter', 'rtl', 'land', 'takeoff'],
+        ['motor', 'servo', 'actuator', 'throttle', 'yaw', 'pitch', 'roll'],
+        ['attitude', 'position', 'velocity', 'acceleration', 'waypoint'],
+        
+        # Sensor context
+        ['gps', 'imu', 'gyro', 'accel', 'mag', 'baro', 'compass'],
+        ['sensor', 'reading', 'calibrate', 'filter', 'noise', 'drift'],
+        
+        # Communication context
+        ['mavlink', 'telemetry', 'radio', 'uart', 'spi', 'i2c'],
+        ['packet', 'message', 'protocol', 'checksum', 'crc'],
+        
+        # Security context  
+        ['validate', 'check', 'bounds', 'overflow', 'buffer', 'input'],
+        ['malloc', 'free', 'memcpy', 'strcpy', 'sprintf', 'scanf'],
+    ]
+
+
+    for context in uav_contexts:
+        # Add as training sequences
+        tokens_list.append(context)
+        # Add permutations for better learning
+        for i in range(3):
+            import random
+            shuffled = context.copy()
+            random.shuffle(shuffled)
+            tokens_list.append(shuffled)
 
     print("training w2v...")
     num_workers = cpu_count(
     ) if config.num_workers == -1 else config.num_workers
-    model = Word2Vec(sentences=tokens_list, min_count=3, size=config.gnn.embed_size,
-                     max_vocab_size=config.dataset.token.vocabulary_size, workers=num_workers, sg=1)
+   
+    model = Word2Vec(
+        sentences=tokens_list,
+        vector_size=config.gnn.embed_size,      # Match model embedding size
+        window=8,                               # Larger window for code context
+        min_count=2,                            # Lower min_count for domain terms
+        workers=num_workers,
+        sg=1,                                   # Skip-gram (better for rare words)
+        hs=0,                                   # Use negative sampling
+        negative=10,                            # More negative samples
+        sample=1e-4,                            # Subsampling frequent words
+        epochs=15,                              # More epochs for better quality
+        alpha=0.025,                            # Learning rate
+        min_alpha=0.0001,                       # Final learning rate
+        compute_loss=True,                      # Track loss
+        callbacks=[LossLogger()],               # Log training progress
+        max_vocab_size=config.dataset.token.vocabulary_size,
+        seed=config.seed
+    )
+    
+
     model.wv.save(f"{root}/{cweid}/w2v.wv")
 
 
@@ -87,11 +155,11 @@ def load_wv(config_path: str):
 
     """
     config = cast(DictConfig, OmegaConf.load(config_path))
-    cweid = config.dataset.name
+    cweid = config.dataset.name_word2vec
 
     model = KeyedVectors.load(f"{config.data_folder}/{cweid}/w2v.wv", mmap="r")
 
-    print()
+    print(model)
 
 
 if __name__ == '__main__':
@@ -103,4 +171,4 @@ if __name__ == '__main__':
                               type=str)
     __args = __arg_parser.parse_args()
     train_word_embedding(__args.config)
-    # load_wv(__args.config)
+    load_wv(__args.config)

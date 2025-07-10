@@ -1,0 +1,160 @@
+# configs/dwk_optimized.yaml
+seed: 42
+num_workers: 2
+log_offline: false
+
+# preprocess keys
+joern_path: "joern/joern-parse"
+split_token: false
+
+# data keys
+data_folder: "data"
+save_every_epoch: 1
+val_every_epoch: 1
+log_every_epoch: 5
+progress_bar_refresh_rate: 1
+
+dataset:
+  name: UAV/graph_balanced  # or SARD
+  name_word2vec: UAV
+  token:
+    max_parts: 20          # ↑ Increased for longer code sequences
+    is_wrapped: false
+    is_splitted: false
+    vocabulary_size: 100000 # ↓ Reduced but sufficient for domain
+
+gnn:
+  # Model architecture
+  name: "gcn"  # GCN is more stable than GGNN for vulnerability detection
+  w2v_path: "${data_folder}/${dataset.name}/w2v.wv"
+  
+  # Embedding dimensions - Increased capacity
+  embed_size: 256         # ↑ Increased from 128 for richer representations
+  hidden_size: 512        # ↑ Significantly increased for complex patterns
+  
+  # Pooling and regularization
+  pooling_ratio: 0.8      # Keep 80% of important nodes
+  drop_out: 0.4           # ↑ Increased dropout for regularization
+  
+  # Network depth - Optimized for vulnerability patterns
+  n_hidden_layers: 2      # ↑ Increased depth for complex pattern learning
+  n_head: 8               # ↑ More attention heads for multi-aspect analysis
+  n_gru: 2                # Kept reasonable for stability
+  
+  # Edge processing
+  edge_sample_ratio: 0.9  # Keep most edges for vulnerability path preservation
+  
+  # RNN configuration for statement encoding
+  rnn:
+    hidden_size: 256      # ↑ Increased for better token sequence modeling
+    num_layers: 2         # ↑ Deeper RNN for complex statements
+    drop_out: 0.3         # Moderate dropout in RNN
+    use_bi: true          # Bidirectional for better context
+    activation: relu      # ReLU for faster training
+    
+  # Advanced features for vulnerability detection
+  use_attention_pooling: true    # Global attention instead of TopK
+  use_residual_connections: true # Skip connections for deeper networks
+  use_batch_norm: true          # Batch normalization for stability
+
+classifier:
+  # Increased classifier capacity
+  hidden_size: 1024       # ↑ Much larger for complex decision boundaries
+  n_hidden_layers: 3      # ↑ Deeper classifier
+  n_classes: 2
+  drop_out: 0.5          # ↑ High dropout in classifier to prevent overfitting
+  
+  # Advanced classifier features
+  use_layer_norm: true    # Layer normalization
+  activation: "gelu"      # GELU activation for better gradients
+  use_residual: true      # Residual connections in classifier
+
+# Training hyperparameters - Optimized for imbalanced data
+hyper_parameters:
+  vector_length: 128
+
+  # Training schedule
+  n_epochs: 80            # ↑ More epochs with early stopping
+  patience: 15            # ↑ More patience for complex patterns
+  
+  # Batch configuration
+  batch_size: 12          # ↓ Smaller batch for stable gradients with limited data
+  test_batch_size: 24     # Larger test batch for efficiency
+  reload_dataloader: true
+  
+  # Gradient control
+  clip_norm: 2.0          # ↑ Gradient clipping for stability
+  gradient_accumulation_steps: 4  # Simulate larger batch size
+  
+  # Validation strategy
+  val_every_step: 0.5     # Validate twice per epoch
+  log_every_n_steps: 25   # Regular logging
+  progress_bar_refresh_rate: 1
+  resume_from_checkpoint: null
+  shuffle_data: true
+  
+  # Advanced training techniques
+  use_focal_loss: true    # Focal loss for class imbalance
+  focal_alpha: 0.25       # Weight for rare class
+  focal_gamma: 2.0        # Focus on hard examples
+  
+  use_label_smoothing: true  # Label smoothing for regularization
+  label_smoothing: 0.1
+  
+  use_class_weights: true    # Class weights for imbalance
+  class_weight_strategy: "inverse_freq"  # Inverse frequency weighting
+
+  # Optimizer configuration
+  optimizer: "AdamW"      # AdamW with weight decay
+  nesterov: false
+  learning_rate: 0.001    # ↓ Lower learning rate for stability
+  weight_decay: 1e-3      # ↑ Weight decay for regularization
+  
+  # Learning rate schedule
+  use_lr_scheduler: true
+  scheduler_type: "cosine_annealing_warm_restarts"
+  t_0: 10                 # Initial restart period
+  t_mult: 2               # Period multiplier
+  eta_min: 1e-6          # Minimum learning rate
+  
+  # Alternative: Reduce on plateau
+  # scheduler_type: "reduce_on_plateau"
+  # patience_lr: 5
+  # factor_lr: 0.5
+  
+  decay_gamma: 0.95       # Exponential decay factor
+
+# Advanced monitoring and debugging
+monitoring:
+  # Metrics to track
+  track_per_class_metrics: true
+  track_confusion_matrix: true
+  track_attention_weights: true
+  
+  # Visualization
+  visualize_embeddings: true   # t-SNE visualization every N epochs
+  save_attention_maps: true    # Save attention visualizations
+  
+  # Model checkpointing
+  save_best_model: true
+  monitor_metric: "val_f1"
+  save_top_k: 3
+
+# Data augmentation during training (optional)
+data_augmentation:
+  enabled: false          # Can enable if needed
+  node_dropout: 0.1       # Random node dropout
+  edge_dropout: 0.05      # Random edge dropout
+  token_mask: 0.15        # Token masking (BERT-style)
+  
+# Domain-specific configurations
+domain_specific:
+  # UAV-specific sensitive APIs weight boost
+  uav_api_weight: 1.5     # Boost weight for UAV-specific APIs
+  
+  # Vulnerability type weights (can be tuned per dataset)
+  cwe_weights:
+    CWE119: 1.2           # Buffer overflow - high importance
+    CWE_mavlink_injection: 1.5  # UAV-specific - highest importance
+    CWE_sensor_spoofing: 1.3     # UAV-specific - high importance
+    default: 1.0

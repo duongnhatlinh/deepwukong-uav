@@ -1,5 +1,5 @@
 seed: 7
-num_workers: 8
+num_workers: 2
 log_offline: false
 
 # preprocess keys
@@ -14,7 +14,7 @@ log_every_epoch: 10
 progress_bar_refresh_rate: 1
 
 dataset:
-  name: CWE119
+  name: UAV
   token:
     max_parts: 16
     is_wrapped: false
@@ -51,8 +51,8 @@ hyper_parameters:
 
   n_epochs: 50
   patience: 10
-  batch_size: 64
-  test_batch_size: 64
+  batch_size: 32
+  test_batch_size: 32
   reload_dataloader: true
   clip_norm: 5
   val_every_step: 1.0
@@ -63,6 +63,7 @@ hyper_parameters:
 
   optimizer: "Adam"
   nesterov: true
-  learning_rate: 0.002
+  learning_rate: 0.005
   weight_decay: 0
   decay_gamma: 0.95
+  gradient_accumulation_steps: 2  # Accumulate gradients

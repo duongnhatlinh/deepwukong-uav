@@ -5,6 +5,7 @@ from typing import List
 import torch
 from torch_geometric.data import Data
 from src.vocabulary import Vocabulary
+from src.utils import read_gpickle
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,7 @@ class XFG:
             xfg_nx: nx.DiGraph = xfg
         elif path is not None:
             assert exists(path), f"xfg {path} not exists!"
-            xfg_nx: nx.DiGraph = nx.read_gpickle(path)
+            xfg_nx: nx.DiGraph = read_gpickle(path)
         else:
             raise ValueError("invalid inputs!")
         self.__init_graph(xfg_nx)
@@ -43,11 +44,10 @@ class XFG:
             self.__node_to_idx[xfg_node] = idx
         for n in xfg_nx:
             for k in xfg_nx[n]:
-                if xfg_nx[n][k]["c/d"] == "c":
-                    self.__edges.append(
-                        XFGEdge(from_node=k_to_nodes[n],
-                                to_node=k_to_nodes[k]))
-                elif xfg_nx[n][k]["c/d"] == "d":
+                edge_data = xfg_nx[n][k]
+                # Check if 'c/d' key exists, default to 'c' if not present
+                edge_type = edge_data.get("c/d", "c")
+                if edge_type in ["c", "d"]:
                     self.__edges.append(
                         XFGEdge(from_node=k_to_nodes[n],
                                 to_node=k_to_nodes[k]))
@@ -86,10 +86,11 @@ class XFG:
             less_len = min(max_len, len(ids))
             node_ids[tokens_idx, :less_len] = torch.tensor(ids[:less_len],
                                                            dtype=torch.long)
+        
         edge_index = torch.tensor(list(
             zip(*[[self.__node_to_idx[e.from_node],
                    self.__node_to_idx[e.to_node]] for e in self.edges])),
             dtype=torch.long)
-
+        
         # save token to `x` so Data can calculate properties like `num_nodes`
         return Data(x=node_ids, edge_index=edge_index)

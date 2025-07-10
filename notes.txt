@@ -1,0 +1,642 @@
+Các câu hỏi cho đồ án cần phải nghiên cứu?
+- Đây là công cụ gì?
+- Mục đích của việc sử dụng công cụ này là gì?
+- Tại sao em lại chọn công cụ này để phân tích lỗ hổng phần mềm tĩnh?
+- Cách hoạt động của model này như thế nào?
+- Dữ liệu đầu vào là gì?
+- Dữ liệu đầu ra là gì?
+- Dữ liệu được biến đổi qua các giai đoạn như thế nào?
+- Các tầng trong model này là gì?
+- Em đã nghiên cứu và đóng góp/làm mới được gì trong đồ án này?
+- Em đánh giá model này dựa trên tiêu chí gì? Và nó có hiệu quả gì so với các model khác?
+- tỉ lệ dương tính giả cao là gì ?
+
+- Các lỗ hổng drone được công bố
+
+
+
+1.Tìm hiểu về dữ liệu đầu vào
+- CWE-119 là gì?
+- Chứa những loại lỗ hổng phần mềm nào?
+- Ngôn ngữ gì?
+
+- Sử dụng tập dữ liệu CWE bao nhiêu mà liên quan đến  UAV để huấn luyện cho model 
+- Cho ví dụ về CWE, CVE => đưa ra điểm khác biệt về chúng
+
+Nội dung tôi tìm hiểu được:
+- CVE và CWE được phát triển bởi MITRE - một tổ chính được chính phủ tài trợ chuyên tạo ra các tiêu chuyển cho nghành công nghệ an ninh thông tin
+- CVE - Common Vulnerabilities and Exposures: danh sách các lỗ hổng liên quan đến một phần mềm, nền tảng hay một hệ thống cụ thể. 
+    Ví dụ: CVE 2017-0199: lỗ hổng cho phép thực thi mã từ xa liên quan đến thực thi file độc hại trên nền tảng microsoft word
+- CWE - Common Weak and Enumeration: danh sách các loại điểm yếu của phần mềm.
+    Ví dụ: CWE-119: các lỗ hổng liên quan đến việc không kiểm soát đúng các thao tác truy cập bộ nhớ.
+           CWE-79: lỗ hổng XSS - chèn mã độc trên trình duyệt người dùng -> CVE-2023-26000: store-XSS. CVE-2025-49298: 
+           
+
+
+Insecure Firmware/Software Risk (Rủi ro phần mềm/firmware không an toàn)
+CWE-127, CWE-121, CWE-119, CWE-124, CWE-122, CWE-120 (các lỗi tràn bộ đệm).
+CWE-416, CWE-415 (sử dụng bộ nhớ sau khi giải phóng hoặc giải phóng hai lần).
+CWE-126, CWE-125 (đọc/ghi ngoài giới hạn).
+CWE-190, CWE-191 (tràn số nguyên hoặc dưới tràn).
+CWE-476, CWE-824 (tham chiếu con trỏ NULL hoặc không được khởi tạo).
+Và nhiều CWE khác liên quan đến quản lý bộ nhớ, con trỏ, hoặc logic lập trình sai (CWE-835, CWE-674, CWE-704, v.v.).
+
+LIST CWE: 49
+CWE-127: Buffer Under-read
+CWE-121: Stack-based Buffer Overflow
+CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer
+CWE-124: Buffer Underwrite ('Buffer Underflow')
+CWE-122: Heap-based Buffer Overflow
+CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')
+Any...
+CWE-466: Return of Pointer Value Outside of Expected Range
+CWE-416: Use After Free
+CWE-123: Write-what-where Condition
+CWE-126: Buffer Over-read
+CWE-415: Double Free
+CWE-135: Incorrect Calculation of Multi-Byte String Length
+CWE-785: Use of Path Manipulation Function without Maximum-sized Buffer
+CWE-805: Buffer Access with Incorrect Length Value
+CWE-806: Buffer Access Using Size of Source Buffer
+CWE-824: Access of Uninitialized Pointer
+CWE-822: Untrusted Pointer Dereference
+CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop')
+CWE-561: Dead Code
+CWE-457: Use of Uninitialized Variable
+CWE-476: NULL Pointer Dereference
+CWE-465: Pointer Issues
+CWE-170: Improper Null Termination
+CWE-823: Use of Out-of-range Pointer Offset
+CWE-787: Out-of-bounds Write
+CWE-834: Excessive Iteration
+CWE-788: Access of Memory Location After End of Buffer
+CWE-843: Access of Resource Using Incompatible Type ('Type Confusion')
+CWE-704: Incorrect Type Conversion or Cast
+CWE-468: Incorrect Pointer Scaling
+CWE-401: Improper Release of Memory Before Removing Last Reference ('Memory Leak')
+CWE-190: Integer Overflow or Wraparound
+CWE-789: Uncontrolled Memory Allocation
+CWE-197: Numeric Truncation Error
+CWE-825: Expired Pointer Dereference
+CWE-020: Improper Input Validation
+CWE-668: Exposure of Resource to Wrong Sphere
+CWE-265: Privilege / Sandbox Issues
+CWE-079: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+CWE-125: Out-of-bounds Read
+CWE-628: Function Call with Incorrectly Specified Arguments
+CWE-426: Untrusted Search Path
+CWE-191: Integer Underflow (Wrap or Wraparound)
+CWE-690: Null Deref from Return
+CWE-674: Uncontrolled Recursion
+CWE-460: Improper Cleanup on Thrown Exception
+CWE-188: Reliance on Data/Memory Layout
+CWE-400: Uncontrolled Resource Consumption ('Resource Exhaustion')
+
+
+CWE -> CVE -> Code Vul, No_Vul
+
+
+1. Các bước chuẩn bị dataset real-world (file vulnerable C/C++) từ firmware UAV
+- Chuẩn bị các firmware UAV
+- Tìm kiếm Vulnerable từ các commit trước của firmware đó
+- Trích xuất file trước và sau khi commit
+- Lưu trữ dưới định dạng:
+Firmware_UAV:
+    - name_vulnerable1:
+        - hash_commit:
+            + vulnerable_filename.c
+            + fixed_filename.c
+        - hash_commit:
+            + vulnerable_filename.c
+            + fixed_filename.c
+        - ......
+    
+    - name_vulnerable2:
+        - hash_commit:
+            + vulnerable_filename.c
+            + fixed_filename.c
+        - ......
+
+
+ardupilot/
+├── CWE119_buffer_overflow/ // dựa vào grep trong lệnh log
+│   ├── pair_001/
+│   │   ├── vulnerable_filename.c // ví dụ: git show 472d8a0df^:src/util.c > vulnerable_util.c
+│   │   ├── fixed_filename.c // ví dụ: git show 472d8a0df:src/util.c > fixed_util.c
+│   │   
+│   │  
+│   └── pair_002/
+└── CWE399_memory_leak/
+
+PAPERS 
+- VulDeePecker: A Deep Learning-Based System for Vulnerability Detection
+Link GitHub: https://github.com/CGCL-codes/VulDeePecker
+
+- SySeVR: A Framework for Using Deep Learning to Detect Software Vulnerabilities
+Link GitHub: https://github.com/SySeVR/SySeVR
+
+- Vulnerability Detection for Source Code Using Contextual LSTM
+Link IEEE: https://ieeexplore.ieee.org/document/8599360/
+
+-  Hidden code vulnerability detection: A study of the Graph-BiLSTM algorithm
+Link: https://www.sciencedirect.com/science/article/pii/S0950584924001496
+
+- Machine Learning Techniques for Python Source Code Vulnerability Detection
+Link: https://arxiv.org/html/2404.09537v1
+
+
+DATASETS
+- CVEfixes Dataset
+Link: https://github.com/secureIT-project/CVEfixes
+
+- CVE repository
+Link: https://github.com/justakazh/CVE_Database
+
+- VulDeePecker Dataset
+Link: https://github.com/firmware-vulnerability-detection/VulDeePecker-dataset
+
+- DiverseVul Dataset
+Link: https://www.researchgate.net/publication/374752038_DiverseVul_A_New_Vulnerable_Source_Code_Dataset_for_Deep_Learning_Based_Vulnerability_Detection
+
+
+TÀI LIỆU CHUYÊN VỀ PHP
+- TAP: A static analysis model for PHP vulnerabilities
+Link PLOS: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0225196
+Link PMC: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6860437/
+
+- PHP Vulnerability Test Suite - NIST SARD
+Link: https://samate.nist.gov/SARD/test-suites/103?page=1611
+
+- PHP-based malicious webshell detection
+Link: https://www.sciencedirect.com/science/article/abs/pii/S0167404824003547
+
+Theo anh nghĩ em nên:
+- Tìm một vài model LSTM có kết quả cao
+- Xác định các loại lỗ hổng CVE, ví dụ như: XSS, SQL Injection, RCE
+- Xác định các loại CWE liên quan đến CVE trên, ví dụ: CWE-79: XSS, CWE-89: SQL Injection, ...
+(nguồn CWE: https://samate.nist.gov/SARD/)
+- Cho model học trên dataset(tập CWE em tìm được)
+
+
+
+1. CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer (Buffer Overflow)
+
+    Category: Memory Safety
+
+    Statistical Evidence: Frequently reported in UAV autopilot firmware; multiple CVEs with high severity (e.g., PX4 and DJI drones).
+
+    Key UAV Examples:
+
+        PX4 Autopilot: CVE-2023-47625 (Global buffer overflow in CrsfParser)
+
+        DJI: Multiple out-of-bound write vulnerabilities in vtwo_sdk service (CVE-2023-51454, CVE-2023-51455)
+
+    Affected Platforms: PX4 Autopilot, DJI Mavic 3, DJI Mini Pro 3
+
+2. CWE-362: Race Condition
+
+    Category: Concurrency Issues
+
+    Statistical Evidence: Documented in PX4 autopilot with medium severity CVEs.
+
+    Key UAV Examples:
+
+        PX4 Autopilot: CVE-2024-24254, CVE-2024-24255 (Race conditions in geofence and mission feasibility modules)
+
+    Affected Platforms: PX4 Autopilot
+
+3. CWE-20: Improper Input Validation
+
+    Category: Input Validation
+
+    Statistical Evidence: Common in IoT and UAV firmware; identified by multiple static analysis tools (Cppcheck, Flawfinder).
+
+    Key UAV Examples:
+
+        DJI vtwo_sdk service fuzzing revealed crashes leading to DoS and potential code execution (CVE-2023-51452, CVE-2023-51453)
+
+    Affected Platforms: DJI drones (Mavic 3, Mini Pro 3)
+
+4. CWE-200: Information Exposure
+
+    Category: Information Disclosure
+
+    Statistical Evidence: Several CVEs related to unauthorized access to sensitive data in UAV firmware.
+
+    Key UAV Examples:
+
+        PX4 Autopilot: CVE-2021-34125 (Access to sensitive information via nuttx commands)
+
+        DJI Mavic 3: CVE-2023-6951 (Wi-Fi password exposure)
+
+    Affected Platforms: PX4 Autopilot, DJI Mavic 3, Yuneec Mantis Q
+
+5. CWE-399: Resource Management Errors (Denial of Service)
+
+    Category: Resource Management
+
+    Statistical Evidence: Denial of service vulnerabilities reported in DJI FTP service and PX4 autopilot.
+
+    Key UAV Examples:
+
+        DJI FTP service: CVE-2023-6950 (DoS via malformed SIZE request)
+
+        PX4 Autopilot: CVE-2021-46896 (DoS via buffer overflow)
+
+    Affected Platforms: DJI Mavic 3, PX4 Autopilot
+
+6. CWE-787: Out-of-bounds Write
+
+    Category: Memory Safety
+
+    Statistical Evidence: Identified in DJI vtwo_sdk service with medium severity CVEs.
+
+    Key UAV Examples:
+
+        DJI: CVE-2023-51454, CVE-2023-51455 (Out-of-bounds write vulnerabilities)
+
+    Affected Platforms: DJI Mavic 3, DJI Mini Pro 3
+
+7. CWE-416: Use After Free
+
+    Category: Memory Safety
+
+    Statistical Evidence: Common in embedded systems and UAV firmware, though specific UAV CVEs less documented in search results; inferred from typical firmware issues.
+
+    Key UAV Examples: Not explicitly documented in search results but known from UAV firmware research
+
+8. CWE-119 and CWE-120: Buffer Overflow and Classic Buffer Overflow
+
+    Category: Memory Safety
+
+    Statistical Evidence: Frequently reported by static analysis tools in IoT OS and UAV firmware.
+
+    Key UAV Examples: PX4 Autopilot buffer overflow CVEs as above.
+
+    Affected Platforms: PX4, DJI
+
+9. CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+
+    Category: Path Traversal
+
+    Statistical Evidence: Common in IoT devices, potential in UAV diagnostic services like FTP.
+
+    Key UAV Examples: DJI FTP service vulnerabilities (access to encrypted diagnostic data without authentication)
+
+    Affected Platforms: DJI Mavic 3
+
+10. CWE-284: Improper Access Control
+
+    Category: Access Control
+
+    Statistical Evidence: Evident from unauthorized Wi-Fi connection and service access vulnerabilities.
+
+    Key UAV Examples:
+
+        DJI Mavic 3: CVE-2023-6951 (Unauthorized Wi-Fi connection)
+
+    Affected Platforms: DJI drones
+
+11. CWE-78: OS Command Injection
+
+    Category: Injection Flaws
+
+    Statistical Evidence: Common in embedded systems but specific UAV CVEs not detailed in search results; inferred risk.
+
+    Key UAV Examples: Not explicitly documented in search results but relevant in UAV firmware security research
+
+12. CWE-434: Unrestricted Upload of File with Dangerous Type
+
+    Category: File Upload Vulnerabilities
+
+    Statistical Evidence: Potential in UAV firmware with diagnostic or maintenance services; no direct UAV CVEs found in search.
+
+    Key UAV Examples: Not explicitly documented
+
+13. CWE-284: Improper Authorization
+
+    Category: Authorization
+
+    Statistical Evidence: Seen in DJI vulnerabilities allowing unauthorized access to privileged services.
+
+    Key UAV Examples: DJI vtwo_sdk service vulnerabilities
+
+
+- Khởi tạo các giá trị trọng số của embedding theo phân phối Xavier Uniform, giúp mô hình học hiệu quả hơn, tránh vanishing/exploding gradients.
+- Dropout giúp mô hình tổng quát hóa tốt hơn, tránh overfitting.
+- LSTM (Long Short-Term Memory) là một loại mạng nơ-ron hồi tiếp (Recurrent Neural Network - RNN) đặc biệt, được thiết kế để xử lý và ghi nhớ thông tin trong chuỗi dữ liệu dài.
+- Khác với RNN truyền thống dễ bị "quên" thông tin khi chuỗi quá dài (do vanishing/exploding gradients), LSTM có cấu trúc đặc biệt với các "cổng" (gates) giúp lưu trữ, cập nhật hoặc loại bỏ thông tin một cách linh hoạt trong quá trình học.
+- LSTM được sử dụng rộng rãi cho các bài toán xử lý chuỗi (sequence modeling), nơi thông tin trong quá khứ ảnh hưởng đến kết quả hiện tại.
+- Vanishing/exploding gradients ??
+
+
+ - 1. CWE-306: Missing Authentication for Critical Function
+* 2. CWE-20: Improper Input Validation
+3. CWE-284: Improper Access Control
+4. CWE-787: Out-of-bounds Write
+- 5. CWE-319: Cleartext Transmission of Sensitive Information
+6. CWE-120: Buffer Copy without Checking Size of Input
+7. CWE-129: Improper Validation of Array Index
+8. CWE-288: Authentication Bypass Using an Alternate Path
+- 9. CWE-798: Use of Hard-coded Credentials
+10. CWE-200: Information Exposure
+* 11. CWE-400: Uncontrolled Resource Consumption
+* 12. CWE-78: OS Command Injection
+13. CWE-122: Heap-based Buffer Overflow
+14. CWE-347: Improper Verification of Cryptographic Signature
+- 15. CWE-404: Improper Resource Shutdown or Release
+
+CWE-362: Race Condition
+* CWE-399: Resource Management Errors (Denial of Service)
+CWE-416: Use After Free
+* CWE-119: Buffer Overflow
+* CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+CWE-434: Unrestricted Upload of File with Dangerous Type
+
+
+Mã nguồn UAV
+
+- ArduPilot (C++): https://github.com/ArduPilot/ardupilot
+- PX4 (C++): https://github.com/PX4/PX4-Autopilot  
+- Paparazzi UAV (C): https://github.com/paparazzi/paparazzi
+- LibrePilot (C++): https://github.com/librepilot/LibrePilot
+
+
+- Betaflight (C): https://github.com/betaflight/betaflight
+- iNav (C): https://github.com/iNavFlight/inav
+- Cleanflight (C): https://github.com/cleanflight/cleanflight
+
+
+
+
+Link: https://github.com/simondlevy/Hackflight 
+https://github.com/the-risk-taker/drone-base-firmware
+https://github.com/Open-UAV/Firmware
+
+
+Kết quả lưu trữ:
+data/UAV/source-code/tên-uav/tên lỗ hổng/pair_001/vul, fix, metadata
+
+Repository: ardupilot
+Total vulnerability commits found: 609
+Total vulnerable/fixed pairs extracted: 666
+
+CWE119_buffer_overflow:
+  Commits: 23
+  Pairs extracted: 18
+  Duplicates skipped: 12
+CWE399_memory_leak:
+  Commits: 23
+  Pairs extracted: 15
+  Duplicates skipped: 1
+CWE190_integer_overflow:
+  Commits: 119
+  Pairs extracted: 87
+  Duplicates skipped: 33
+CWE191_integer_underflow:
+  Commits: 25
+  Pairs extracted: 12
+  Duplicates skipped: 1
+CWE125_out_of_bounds_read:
+  Commits: 17
+  Pairs extracted: 17
+  Duplicates skipped: 1
+CWE787_out_of_bounds_write:
+  Commits: 20
+  Pairs extracted: 8
+  Duplicates skipped: 2
+CWE20_input_validation:
+  Commits: 34
+  Pairs extracted: 65
+  Duplicates skipped: 2
+CWE476_null_pointer:
+  Commits: 159
+  Pairs extracted: 305
+  Duplicates skipped: 17
+CWE416_use_after_free:
+  Commits: 9
+  Pairs extracted: 4
+  Duplicates skipped: 4
+CWE120_buffer_copy:
+  Commits: 11
+  Pairs extracted: 19
+CWE129_improper_validation_of_array_index:
+  Commits: 11
+  Pairs extracted: 6
+CWE200_information_exposure:
+  Commits: 1
+  Pairs extracted: 1
+CWE400_uncontrolled_resource_consumption:
+  Commits: 2
+  Pairs extracted: 0
+CWE78_os_command_injection:
+  Commits: 1
+  Pairs extracted: 0
+CWE362_race_condition:
+  Commits: 144
+  Pairs extracted: 102
+  Duplicates skipped: 48
+CWE_other:
+  Commits: 10
+  Pairs extracted: 7
+  Duplicates skipped: 3
+
+==================================================
+Repository: PX4-Autopilot
+Total vulnerability commits found: 427
+Total vulnerable/fixed pairs extracted: 644
+
+CWE119_buffer_overflow:
+  Commits: 26
+  Pairs extracted: 29
+  Duplicates skipped: 5
+CWE399_memory_leak:
+  Commits: 25
+  Pairs extracted: 25
+  Duplicates skipped: 1
+CWE190_integer_overflow:
+  Commits: 95
+  Pairs extracted: 91
+  Duplicates skipped: 4
+CWE191_integer_underflow:
+  Commits: 5
+  Pairs extracted: 9
+CWE125_out_of_bounds_read:
+  Commits: 5
+  Pairs extracted: 4
+  Duplicates skipped: 1
+CWE787_out_of_bounds_write:
+  Commits: 7
+  Pairs extracted: 8
+  Duplicates skipped: 1
+CWE20_input_validation:
+  Commits: 24
+  Pairs extracted: 22
+CWE476_null_pointer:
+  Commits: 68
+  Pairs extracted: 229
+  Duplicates skipped: 16
+CWE416_use_after_free:
+  Commits: 7
+  Pairs extracted: 6
+CWE284_improper_access_control:
+  Commits: 9
+  Pairs extracted: 12
+  Duplicates skipped: 2
+CWE120_buffer_copy:
+  Commits: 18
+  Pairs extracted: 37
+  Duplicates skipped: 9
+CWE129_improper_validation_of_array_index:
+  Commits: 2
+  Pairs extracted: 2
+CWE400_uncontrolled_resource_consumption:
+  Commits: 18
+  Pairs extracted: 12
+CWE122_heap_based_buffer_overflow:
+  Commits: 1
+  Pairs extracted: 1
+CWE362_race_condition:
+  Commits: 103
+  Pairs extracted: 145
+  Duplicates skipped: 17
+CWE_other:
+  Commits: 14
+  Pairs extracted: 12
+
+
+Epoch 0: 100%|████████| 1704/1704 [02:29<00:00, 11.43it/s, v_num=0, F1=0.000]Metric val_loss improved. New best score: 0.265                              
+Epoch 1: 100%|████████| 1704/1704 [02:29<00:00, 11.37it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.004 >= min_delta = 0.0. New best score: 0.260  
+Epoch 2: 100%|████████| 1704/1704 [02:29<00:00, 11.38it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.260  
+Epoch 5: 100%|████████| 1704/1704 [02:51<00:00,  9.93it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.259  
+Epoch 8: 100%|████████| 1704/1704 [02:39<00:00, 10.68it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.023 >= min_delta = 0.0. New best score: 0.236  
+Epoch 10: 100%|███████| 1704/1704 [02:43<00:00, 10.44it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.006 >= min_delta = 0.0. New best score: 0.230  
+Epoch 11: 100%|███████| 1704/1704 [02:40<00:00, 10.62it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.029 >= min_delta = 0.0. New best score: 0.202  
+Epoch 12: 100%|███████| 1704/1704 [02:39<00:00, 10.68it/s, v_num=0, F1=0.000]Metric val_loss improved by 0.005 >= min_delta = 0.0. New best score: 0.196  
+Epoch 22: 100%|███████| 1704/1704 [02:46<00:00, 10.25it/s, v_num=0, F1=1.000]Monitored metric val_loss did not improve in the last 10 records. Best score: 0.196. Signaling Trainer to stop.
+Epoch 22: 100%|███████| 1704/1704 [02:46<00:00, 10.25it/s, v_num=0, F1=1.000]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Testing DataLoader 0: 100%|████████████████| 213/213 [00:09<00:00, 22.07it/s]
+─────────────────────────────────────────────────────────────────────────────
+       Test metric             DataLoader 0
+─────────────────────────────────────────────────────────────────────────────
+      test_accuracy         0.9480481147766113
+         test_f1            0.6075388193130493
+        test_fpr           0.027205536141991615
+        test_loss           0.37837883830070496
+     test_precision         0.6129754185676575
+       test_recall          0.6021978259086609
+
+
+Epoch 0: 100%|████████| 2227/2227 [02:43<00:00, 13.61it/s, v_num=0, F1=0.571]Metric val_loss improved. New best score: 0.185                              
+Epoch 1: 100%|████████| 2227/2227 [02:44<00:00, 13.55it/s, v_num=0, F1=0.667]Metric val_loss improved by 0.039 >= min_delta = 0.0. New best score: 0.146  
+Epoch 2: 100%|████████| 2227/2227 [02:47<00:00, 13.33it/s, v_num=0, F1=0.667]Metric val_loss improved by 0.021 >= min_delta = 0.0. New best score: 0.125  
+Epoch 3: 100%|████████| 2227/2227 [02:47<00:00, 13.32it/s, v_num=0, F1=0.857]Metric val_loss improved by 0.016 >= min_delta = 0.0. New best score: 0.109  
+Epoch 4: 100%|████████| 2227/2227 [02:40<00:00, 13.85it/s, v_num=0, F1=0.889]Metric val_loss improved by 0.006 >= min_delta = 0.0. New best score: 0.103  
+Epoch 5: 100%|████████| 2227/2227 [02:43<00:00, 13.61it/s, v_num=0, F1=0.833]Metric val_loss improved by 0.008 >= min_delta = 0.0. New best score: 0.095  
+Epoch 6: 100%|████████| 2227/2227 [02:41<00:00, 13.76it/s, v_num=0, F1=1.000]Metric val_loss improved by 0.007 >= min_delta = 0.0. New best score: 0.089  
+Epoch 7: 100%|████████| 2227/2227 [02:41<00:00, 13.83it/s, v_num=0, F1=1.000]Metric val_loss improved by 0.006 >= min_delta = 0.0. New best score: 0.082  
+Epoch 9: 100%|████████| 2227/2227 [02:42<00:00, 13.72it/s, v_num=0, F1=0.600]Metric val_loss improved by 0.005 >= min_delta = 0.0. New best score: 0.078  
+Epoch 12: 100%|███████| 2227/2227 [02:37<00:00, 14.14it/s, v_num=0, F1=0.800]Metric val_loss improved by 0.002 >= min_delta = 0.0. New best score: 0.076  
+Epoch 14: 100%|███████| 2227/2227 [02:36<00:00, 14.20it/s, v_num=0, F1=1.000]Metric val_loss improved by 0.003 >= min_delta = 0.0. New best score: 0.073  
+Epoch 18: 100%|███████| 2227/2227 [02:42<00:00, 13.74it/s, v_num=0, F1=0.909]Metric val_loss improved by 0.004 >= min_delta = 0.0. New best score: 0.069  
+Epoch 28: 100%|███████| 2227/2227 [02:38<00:00, 14.03it/s, v_num=0, F1=1.000]Monitored metric val_loss did not improve in the last 10 records. Best score: 0.069. Signaling Trainer to stop.
+Epoch 28: 100%|███████| 2227/2227 [02:38<00:00, 14.02it/s, v_num=0, F1=1.000]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Testing DataLoader 0: 100%|████████████████| 279/279 [00:09<00:00, 28.28it/s]
+─────────────────────────────────────────────────────────────────────────────
+       Test metric             DataLoader 0
+─────────────────────────────────────────────────────────────────────────────
+      test_accuracy         0.9802402853965759
+         test_f1            0.9364620447158813
+        test_fpr           0.007344104815274477
+        test_loss           0.1592656522989273
+     test_precision          0.959319531917572
+       test_recall          0.9146685600280762
+─────────────────────────────────────────────────────────────────────────────
+
+
+Quản lý bộ nhớ: malloc, free, realloc, calloc, memcpy, memmove, memset, etc.
+Xử lý file: fopen, fread, fwrite, fclose, open, close, remove, rename, etc.
+Chuỗi: strcpy, strcat, strncpy, sprintf, snprintf, vsprintf, etc.
+Thực thi lệnh hệ thống: system, exec, popen, etc.
+Mạng: send, recv, socket, bind, connect, etc.
+Bảo mật: SSL_read, SSL_write, gcry_md_open, etc.
+SQL/Database: SqlCommand.Execute, OracleCommand.Execute, etc.
+Khác: các hàm liên quan đến mutex, thread, locale, v.v.
+
+
+
+$ PYTHONPATH="." python src/run.py -c configs/dwk2.yaml
+
+gnn                                                                                               | classifier            | hyper_parameters                   
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+name: gcn                                                                                         | hidden_size: 256      | vector_length: 128                 
+w2v_path: data/UAV/graph_balanced/w2v.wv                                                          | n_hidden_layers: 2    | n_epochs: 50                       
+embed_size: 128                                                                                   | n_classes: 2          | patience: 10                       
+hidden_size: 256                                                                                  | drop_out: 0.4         | batch_size: 8                      
+pooling_ratio: 0.7                                                                                | use_layer_norm: False | test_batch_size: 16                
+drop_out: 0.3                                                                                     | activation: relu      | reload_dataloader: True            
+n_hidden_layers: 2                                                                                | use_residual: False   | clip_norm: 1.0                     
+n_head: 4                                                                                         |                       | gradient_accumulation_steps: 2     
+n_gru: 1                                                                                          |                       | val_every_step: 1.0                
+edge_sample_ratio: 0.8                                                                            |                       | log_every_n_steps: 50              
+rnn: {'hidden_size': 128, 'num_layers': 1, 'drop_out': 0.2, 'use_bi': True, 'activation': 'relu'} |                       | progress_bar_refresh_rate: 1       
+use_attention_pooling: False                                                                      |                       | resume_from_checkpoint: None       
+use_residual_connections: False                                                                   |                       | shuffle_data: True                 
+use_batch_norm: False                                                                             |                       | use_focal_loss: True               
+                                                                                                  |                       | focal_alpha: 0.25                  
+                                                                                                  |                       | focal_gamma: 2.0                   
+                                                                                                  |                       | use_label_smoothing: False         
+                                                                                                  |                       | label_smoothing: 0.0               
+                                                                                                  |                       | use_class_weights: True            
+                                                                                                  |                       | class_weight_strategy: inverse_freq
+                                                                                                  |                       | optimizer: Adam                    
+                                                                                                  |                       | learning_rate: 0.0005              
+                                                                                                  |                       | weight_decay: 0.0005               
+                                                                                                  |                       | use_lr_scheduler: True             
+                                                                                                  |                       | scheduler_type: reduce_on_plateau  
+                                                                                                  |                       | patience_lr: 5                     
+                                                                                                  |                       | factor_lr: 0.7                     
+                                                                                                  |                       | decay_gamma: 0.9                   
+Seed set to 42
+/home/linh/.pyenv/versions/myproject/lib/python3.11/site-packages/torch_geometric/deprecation.py:26: UserWarning: 'nn.glob.GlobalAttention' is deprecated, use 'nn.aggr.AttentionalAggregation' instead
+  warnings.warn(out)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+`Trainer(val_check_interval=1.0)` was configured so validation will run at the end of the training epoch..
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name           | Type             | Params
+----------------------------------------------------
+0 | _graph_encoder | GraphConvEncoder | 1.0 M 
+1 | hidden_layers  | Sequential       | 132 K 
+2 | classifier     | Linear           | 514   
+----------------------------------------------------
+1.2 M     Trainable params
+0         Non-trainable params
+1.2 M     Total params
+4.636     Total estimated model params size (MB)
+Epoch 0: 100%|████████████████| 5321/5321 [03:33<00:00, 24.95it/s, v_num=8, train_loss=0.0221, val_loss=0.00917]Metric val_loss improved. New best score: 0.009                                                                 
+Epoch 1: 100%|███████████████| 5321/5321 [03:23<00:00, 26.12it/s, v_num=8, train_loss=0.00653, val_loss=0.00849]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.008                                     
+Epoch 2: 100%|████████████████| 5321/5321 [03:19<00:00, 26.71it/s, v_num=8, train_loss=0.0782, val_loss=0.00821]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.008                                     
+Epoch 4: 100%|███████████████| 5321/5321 [03:17<00:00, 26.94it/s, v_num=8, train_loss=0.00243, val_loss=0.00776]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.008                                     
+Epoch 6: 100%|███████████████| 5321/5321 [03:17<00:00, 26.89it/s, v_num=8, train_loss=0.00518, val_loss=0.00736]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.007                                     
+Epoch 16: 100%|██████████████| 5321/5321 [03:21<00:00, 26.43it/s, v_num=8, train_loss=0.00197, val_loss=0.00893]Monitored metric val_loss did not improve in the last 10 records. Best score: 0.007. Signaling Trainer to stop. 
+Epoch 16: 100%|██████████████| 5321/5321 [03:21<00:00, 26.43it/s, v_num=8, train_loss=0.00197, val_loss=0.00893]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Testing DataLoader 0: 100%|███████████████████████████████████████████████████| 666/666 [00:12<00:00, 51.29it/s]
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+       Test metric             DataLoader 0
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      test_accuracy         0.9627889394760132
+    test_class_0_acc        0.9770305752754211
+    test_class_1_acc        0.9155923128128052
+         test_f1            0.7815000414848328
+        test_fpr            0.02296919748187065
+        test_loss          0.009290824644267559
+     test_precision         0.7959404587745667
+       test_recall          0.7901521921157837
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────

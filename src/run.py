@@ -3,7 +3,7 @@ from typing import cast
 
 from commode_utils.common import print_config
 from omegaconf import OmegaConf, DictConfig
-from pytorch_lightning import seed_everything
+from lightning.pytorch import seed_everything
 from src.datas.datamodules import XFGDataModule
 from src.models.vd import DeepWuKong
 from src.train import train
@@ -29,8 +29,9 @@ def vul_detect(config_path: str):
 
     vocab = Vocabulary.build_from_w2v(config.gnn.w2v_path)
     vocab_size = vocab.get_vocab_size()
+    
     pad_idx = vocab.get_pad_id()
-
+    
     # Init datamodule
     data_module = XFGDataModule(config, vocab)
 

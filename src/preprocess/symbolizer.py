@@ -79,9 +79,14 @@ def clean_gadget(gadget: List[str]):
     cleaned_gadget = []
 
     for line in gadget:
-        # process if not the header line and not a multi-line commented line
+        # process if not the header line and not a
+
         # if rx_comment.search(line) is None:
+        # Xóa comment đơn dòng
+        line = re.sub(r'//.*', '', line)
+        
         # remove all string literals (keep the quotes)
+
         nostrlit_line = re.sub(r'".*?"', '""', line)
         # remove all character literals
         nocharlit_line = re.sub(r"'.*?'", "''", nostrlit_line)
@@ -113,7 +118,7 @@ def clean_gadget(gadget: List[str]):
                 # identifier); uses positive lookforward
                 ascii_line = re.sub(r'\b(' + fun_name + r')\b(?=\s*\()',
                                     fun_symbols[fun_name], ascii_line)
-
+        
         for var_name in user_var:
             # next line is the nuanced difference between fun_name and var_name
             if len({var_name}.difference(keywords)) != 0 and len({var_name}.difference(main_args)) != 0:
@@ -133,6 +138,7 @@ def clean_gadget(gadget: List[str]):
                     r'\b(' + var_name +
                     r')\b(?:(?=\s*\w+\()|(?!\s*\w+))(?!\s*\()',
                     var_symbols[var_name], ascii_line)
+                
 
         cleaned_gadget.append(ascii_line)
     # return the list of cleaned lines
@@ -159,6 +165,7 @@ def tokenize_code_line(line: str, subtoken: bool):
             tmp.append(line[i].strip())
             w = []
             i += 1
+        
         # Check operators and append to final list
         elif line[i:i + 3] in operators3:
             tmp.append(''.join(w).strip())

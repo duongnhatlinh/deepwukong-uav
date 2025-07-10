@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 
-from pytorch_lightning import Trainer, seed_everything
+import lightning as L
+from lightning import Trainer
+from lightning.pytorch import seed_everything
 import torch
 from src.models.vd import DeepWuKong
 from src.datas.datamodules import XFGDataModule
@@ -29,8 +31,12 @@ def test(checkpoint_path: str, data_folder: str = None, batch_size: int = None):
         config.hyper_parameters.test_batch_size = batch_size
     data_module = XFGDataModule(config, vocabulary)
     seed_everything(config.seed)
-    gpu = 1 if torch.cuda.is_available() else None
-    trainer = Trainer(gpus=gpu)
+    # gpu = 1 if torch.cuda.is_available() else None
+    # trainer = Trainer(gpus=gpu)
+    trainer = L.Trainer(
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        devices=1
+    )
     trainer.test(model, datamodule=data_module)
 
 

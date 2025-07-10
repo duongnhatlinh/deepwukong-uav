@@ -11,6 +11,7 @@ import os
 import networkx as nx
 from os.path import exists
 from tqdm import tqdm
+import pickle
 
 PAD = "<PAD>"
 UNK = "<UNK>"
@@ -31,15 +32,16 @@ def getMD5(s):
     return hl.hexdigest()
 
 
+
 def filter_warnings():
     # "The dataloader does not have many workers which may be a bottleneck."
     filterwarnings("ignore",
                    category=UserWarning,
-                   module="pytorch_lightning.trainer.data_loading",
+                   module="lightning.pytorch.trainer.data_loading",
                    lineno=102)
     filterwarnings("ignore",
                    category=UserWarning,
-                   module="pytorch_lightning.utilities.data",
+                   module="lightning.pytorch.utilities.data",
                    lineno=41)
     # "Please also save or load the state of the optimizer when saving or loading the scheduler."
     filterwarnings("ignore",
@@ -63,6 +65,20 @@ def filter_warnings():
                    module="src.models.modules.common_layers",
                    lineno=0)
 
+def write_gpickle(graph, filename):
+    try:
+        with open(filename, 'wb') as f:
+            pickle.dump(graph, f, pickle.HIGHEST_PROTOCOL)
+    except Exception as e:
+        print(f"Error writing to gpickle file: {e}")
+
+def read_gpickle(filename):
+    try:
+        with open(filename, 'rb') as f:
+            graph = pickle.load(f)
+        return graph
+    except Exception as e:
+        print(f"Error reading gpickle file: {e}")
 
 def count_lines_in_file(file_path: str) -> int:
     command_result = subprocess.run(["wc", "-l", file_path],
@@ -90,7 +106,7 @@ def unique_xfg_raw(xfg_path_list):
     conflict_ct = 0
 
     for xfg_path in xfg_path_list:
-        xfg = nx.read_gpickle(xfg_path)
+        xfg = read_gpickle(xfg_path)
         label = xfg.graph["label"]
         file_path = xfg.graph["file_paths"][0]
         assert exists(file_path), f"{file_path} not exists!"
@@ -133,7 +149,7 @@ def unique_xfg_sym(xfg_path_list):
     conflict_ct = 0
 
     for xfg_path in tqdm(xfg_path_list, total=len(xfg_path_list), desc="xfgs: "):
-        xfg = nx.read_gpickle(xfg_path)
+        xfg = read_gpickle(xfg_path)
         label = xfg.graph["label"]
         file_path = xfg.graph["file_paths"][0]
         assert exists(file_path), f"{file_path} not exists!"
