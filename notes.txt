@@ -567,38 +567,38 @@ Khác: các hàm liên quan đến mutex, thread, locale, v.v.
 
 
 
-$ PYTHONPATH="." python src/run.py -c configs/dwk2.yaml
+$ PYTHONPATH="." python src/run.py -c configs/dwk3.yaml
 
-gnn                                                                                               | classifier            | hyper_parameters                   
----------------------------------------------------------------------------------------------------------------------------------------------------------------
-name: gcn                                                                                         | hidden_size: 256      | vector_length: 128                 
-w2v_path: data/UAV/graph_balanced/w2v.wv                                                          | n_hidden_layers: 2    | n_epochs: 50                       
-embed_size: 128                                                                                   | n_classes: 2          | patience: 10                       
-hidden_size: 256                                                                                  | drop_out: 0.4         | batch_size: 8                      
-pooling_ratio: 0.7                                                                                | use_layer_norm: False | test_batch_size: 16                
-drop_out: 0.3                                                                                     | activation: relu      | reload_dataloader: True            
-n_hidden_layers: 2                                                                                | use_residual: False   | clip_norm: 1.0                     
-n_head: 4                                                                                         |                       | gradient_accumulation_steps: 2     
-n_gru: 1                                                                                          |                       | val_every_step: 1.0                
-edge_sample_ratio: 0.8                                                                            |                       | log_every_n_steps: 50              
-rnn: {'hidden_size': 128, 'num_layers': 1, 'drop_out': 0.2, 'use_bi': True, 'activation': 'relu'} |                       | progress_bar_refresh_rate: 1       
-use_attention_pooling: False                                                                      |                       | resume_from_checkpoint: None       
-use_residual_connections: False                                                                   |                       | shuffle_data: True                 
-use_batch_norm: False                                                                             |                       | use_focal_loss: True               
-                                                                                                  |                       | focal_alpha: 0.25                  
-                                                                                                  |                       | focal_gamma: 2.0                   
-                                                                                                  |                       | use_label_smoothing: False         
-                                                                                                  |                       | label_smoothing: 0.0               
-                                                                                                  |                       | use_class_weights: True            
-                                                                                                  |                       | class_weight_strategy: inverse_freq
-                                                                                                  |                       | optimizer: Adam                    
-                                                                                                  |                       | learning_rate: 0.0005              
-                                                                                                  |                       | weight_decay: 0.0005               
-                                                                                                  |                       | use_lr_scheduler: True             
-                                                                                                  |                       | scheduler_type: reduce_on_plateau  
-                                                                                                  |                       | patience_lr: 5                     
-                                                                                                  |                       | factor_lr: 0.7                     
-                                                                                                  |                       | decay_gamma: 0.9                   
+gnn                                                                                               | classifier           | hyper_parameters                   
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+name: gcn                                                                                         | hidden_size: 512     | vector_length: 128                 
+w2v_path: data/UAV/moderate_balanced/w2v.wv                                                       | n_hidden_layers: 3   | n_epochs: 80                       
+embed_size: 256                                                                                   | n_classes: 2         | patience: 12                       
+hidden_size: 320                                                                                  | drop_out: 0.5        | batch_size: 4                      
+pooling_ratio: 0.8                                                                                | use_layer_norm: True | test_batch_size: 8                 
+drop_out: 0.4                                                                                     | activation: gelu     | reload_dataloader: True            
+n_hidden_layers: 3                                                                                | use_residual: True   | clip_norm: 1.0                     
+n_head: 6                                                                                         |                      | gradient_accumulation_steps: 16    
+n_gru: 2                                                                                          |                      | val_every_step: 1.0                
+edge_sample_ratio: 0.85                                                                           |                      | log_every_n_steps: 25              
+rnn: {'hidden_size': 256, 'num_layers': 2, 'drop_out': 0.3, 'use_bi': True, 'activation': 'relu'} |                      | progress_bar_refresh_rate: 1       
+use_attention_pooling: True                                                                       |                      | resume_from_checkpoint: None       
+use_residual_connections: True                                                                    |                      | shuffle_data: True                 
+use_batch_norm: True                                                                              |                      | use_focal_loss: True               
+                                                                                                  |                      | focal_alpha: 0.7                   
+                                                                                                  |                      | focal_gamma: 3.5                   
+                                                                                                  |                      | use_label_smoothing: False         
+                                                                                                  |                      | label_smoothing: 0.0               
+                                                                                                  |                      | use_class_weights: True            
+                                                                                                  |                      | class_weight_strategy: inverse_freq
+                                                                                                  |                      | optimizer: AdamW                   
+                                                                                                  |                      | learning_rate: 0.0008              
+                                                                                                  |                      | weight_decay: 0.0002               
+                                                                                                  |                      | use_lr_scheduler: True             
+                                                                                                  |                      | scheduler_type: reduce_on_plateau  
+                                                                                                  |                      | patience_lr: 6                     
+                                                                                                  |                      | factor_lr: 0.6                     
+                                                                                                  |                      | decay_gamma: 0.95                  
 Seed set to 42
 /home/linh/.pyenv/versions/myproject/lib/python3.11/site-packages/torch_geometric/deprecation.py:26: UserWarning: 'nn.glob.GlobalAttention' is deprecated, use 'nn.aggr.AttentionalAggregation' instead
   warnings.warn(out)
@@ -611,32 +611,46 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 
   | Name           | Type             | Params
 ----------------------------------------------------
-0 | _graph_encoder | GraphConvEncoder | 1.0 M 
-1 | hidden_layers  | Sequential       | 132 K 
-2 | classifier     | Linear           | 514   
+0 | _graph_encoder | GraphConvEncoder | 5.6 M 
+1 | hidden_layers  | Sequential       | 692 K 
+2 | classifier     | Linear           | 1.0 K 
 ----------------------------------------------------
-1.2 M     Trainable params
+6.3 M     Trainable params
 0         Non-trainable params
-1.2 M     Total params
-4.636     Total estimated model params size (MB)
-Epoch 0: 100%|████████████████| 5321/5321 [03:33<00:00, 24.95it/s, v_num=8, train_loss=0.0221, val_loss=0.00917]Metric val_loss improved. New best score: 0.009                                                                 
-Epoch 1: 100%|███████████████| 5321/5321 [03:23<00:00, 26.12it/s, v_num=8, train_loss=0.00653, val_loss=0.00849]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.008                                     
-Epoch 2: 100%|████████████████| 5321/5321 [03:19<00:00, 26.71it/s, v_num=8, train_loss=0.0782, val_loss=0.00821]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.008                                     
-Epoch 4: 100%|███████████████| 5321/5321 [03:17<00:00, 26.94it/s, v_num=8, train_loss=0.00243, val_loss=0.00776]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.008                                     
-Epoch 6: 100%|███████████████| 5321/5321 [03:17<00:00, 26.89it/s, v_num=8, train_loss=0.00518, val_loss=0.00736]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.007                                     
-Epoch 16: 100%|██████████████| 5321/5321 [03:21<00:00, 26.43it/s, v_num=8, train_loss=0.00197, val_loss=0.00893]Monitored metric val_loss did not improve in the last 10 records. Best score: 0.007. Signaling Trainer to stop. 
-Epoch 16: 100%|██████████████| 5321/5321 [03:21<00:00, 26.43it/s, v_num=8, train_loss=0.00197, val_loss=0.00893]
+6.3 M     Total params
+25.085    Total estimated model params size (MB)
+Epoch 0: 100%|██████████████████████████████████████████████████| 8899/8899 [11:53<00:00, 12.48it/s, v_num=1, train_loss=0.0283, val_loss=0.0409]Metric val_loss improved. New best score: 0.041                                                                                                  
+Epoch 2: 100%|██████████████████████████████████████████████████| 8899/8899 [11:33<00:00, 12.83it/s, v_num=1, train_loss=0.0512, val_loss=0.0407]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.041                                                                      
+Epoch 3: 100%|██████████████████████████████████████████████████| 8899/8899 [11:34<00:00, 12.81it/s, v_num=1, train_loss=0.0275, val_loss=0.0407]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.041                                                                      
+Epoch 5: 100%|██████████████████████████████████████████████████| 8899/8899 [11:23<00:00, 13.02it/s, v_num=1, train_loss=0.0218, val_loss=0.0378]Metric val_loss improved by 0.003 >= min_delta = 0.0. New best score: 0.038                                                                      
+Epoch 6: 100%|███████████████████████████████████████████████████| 8899/8899 [11:20<00:00, 13.08it/s, v_num=1, train_loss=0.042, val_loss=0.0347]Metric val_loss improved by 0.003 >= min_delta = 0.0. New best score: 0.035                                                                      
+Epoch 7:  31%|███████████████▍                                  | 2746/8899 [03:13<07:14, 14.17it/s, v_num=1, train_loss=0.0195, val_loss=0.0347]Epoch 8: 100%|██████████████████████████████████████████████████| 8899/8899 [11:30<00:00, 12.89it/s, v_num=1, train_loss=0.0419, val_loss=0.0346]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.035                                                                      
+Epoch 9: 100%|██████████████████████████████████████████████████| 8899/8899 [11:34<00:00, 12.82it/s, v_num=1, train_loss=0.0147, val_loss=0.0325]Metric val_loss improved by 0.002 >= min_delta = 0.0. New best score: 0.032                                                                      
+Epoch 14: 100%|██████████████████████████████████████████████████| 8899/8899 [11:07<00:00, 13.33it/s, v_num=1, train_loss=0.0266, val_loss=0.031]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.031                                                                      
+Epoch 15: 100%|█████████████████████████████████████████████████| 8899/8899 [10:59<00:00, 13.49it/s, v_num=1, train_loss=0.0191, val_loss=0.0302]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.030                                                                      
+Epoch 19: 100%|█████████████████████████████████████████████████| 8899/8899 [11:17<00:00, 13.14it/s, v_num=1, train_loss=0.0129, val_loss=0.0284]Metric val_loss improved by 0.002 >= min_delta = 0.0. New best score: 0.028                                                                      
+Epoch 21: 100%|██████████████████████████████████████████████████| 8899/8899 [10:58<00:00, 13.52it/s, v_num=1, train_loss=0.014, val_loss=0.0275]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.028                                                                      
+Epoch 22: 100%|█████████████████████████████████████████████████| 8899/8899 [11:26<00:00, 12.96it/s, v_num=1, train_loss=0.0138, val_loss=0.0274]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.027                                                                      
+Epoch 23: 100%|█████████████████████████████████████████████████| 8899/8899 [12:07<00:00, 12.24it/s, v_num=1, train_loss=0.0806, val_loss=0.0262]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.026                                                                      
+Epoch 24:  38%|██████████████████▌                              | 3366/8899 [04:07<06:46, 13.60it/s, v_num=1, train_loss=0.0384, val_loss=0.0262]Epoch 24:  38%|██████████████████▌                              | 3368/8899 [04:07<06:46, 13.60it/s, v_num=1, train_loss=0.0145, val_loss=0.0262]Epoch 24:  38%|██████████████████▌                              | 3370/8899 [04:07<06:46, 13.61it/s, v_num=1, train_loss=0.0164, val_loss=0.0262]Epoch 24:  39%|███████████████████▎                             | 3505/8899 [04:16<06:34, 13.68it/s, v_num=1, train_loss=0.0509, val_loss=0.0262]Epoch 26: 100%|█████████████████████████████████████████████████| 8899/8899 [11:01<00:00, 13.45it/s, v_num=1, train_loss=0.0125, val_loss=0.0259]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.026                                                                      
+Epoch 31: 100%|████████████████████████████████████████████████| 8899/8899 [10:49<00:00, 13.70it/s, v_num=1, train_loss=0.00681, val_loss=0.0252]Metric val_loss improved by 0.001 >= min_delta = 0.0. New best score: 0.025                                                                      
+Epoch 36: 100%|██████████████████████████████████████████████████| 8899/8899 [10:54<00:00, 13.60it/s, v_num=1, train_loss=0.022, val_loss=0.0249]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.025                                                                      
+Epoch 40: 100%|████████████████████████████████████████████████| 8899/8899 [12:08<00:00, 12.22it/s, v_num=1, train_loss=0.00983, val_loss=0.0244]Metric val_loss improved by 0.000 >= min_delta = 0.0. New best score: 0.024                                                                      
+Epoch 52: 100%|█████████████████████████████████████████████████| 8899/8899 [10:59<00:00, 13.48it/s, v_num=1, train_loss=0.00184, val_loss=0.038]Monitored metric val_loss did not improve in the last 12 records. Best score: 0.024. Signaling Trainer to stop.                                  
+Epoch 52: 100%|█████████████████████████████████████████████████| 8899/8899 [10:59<00:00, 13.48it/s, v_num=1, train_loss=0.00184, val_loss=0.038]
 LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
-Testing DataLoader 0: 100%|███████████████████████████████████████████████████| 666/666 [00:12<00:00, 51.29it/s]
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Testing DataLoader 0: 100%|██████████████████████████████████████████████████████████████████████████████████| 1113/1113 [00:32<00:00, 34.27it/s]
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
        Test metric             DataLoader 0
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-      test_accuracy         0.9627889394760132
-    test_class_0_acc        0.9770305752754211
-    test_class_1_acc        0.9155923128128052
-         test_f1            0.7815000414848328
-        test_fpr            0.02296919748187065
-        test_loss          0.009290824644267559
-     test_precision         0.7959404587745667
-       test_recall          0.7901521921157837
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      test_accuracy         0.8732584118843079
+    test_class_0_acc        0.8927221894264221
+    test_class_1_acc        0.8407307267189026
+         test_f1            0.6628483533859253
+        test_fpr            0.10554316639900208
+        test_loss          0.036630697548389435
+     test_precision         0.6764044761657715
+       test_recall          0.6895881295204163
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+(myproject) linh@linh-GF63-Thin-10SC:~/Documents/code/DeepWukong$ 
+

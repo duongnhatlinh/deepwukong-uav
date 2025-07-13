@@ -15,7 +15,7 @@ log_every_epoch: 10  # ↓ Less frequent logging
 progress_bar_refresh_rate: 1
 
 dataset:
-  name: UAV
+  name: UAV/moderate_balanced
   name_word2vec: UAV
   token:
     max_parts: 16          # ↓ Reduced from 20

@@ -10,7 +10,7 @@ vulnerable_commit/
 !vulnerable_commit/gen_sensiapi/gen_sensiapi_hybrid.py
 !vulnerable_commit/gen_sensiapi/uav_domain_sensiapi_generator.py
 !vulnerable_commit/gen_sensiapi/uav_sensiapi_extractor.py
-
+ts_logger/
 # Các file/thư mục khác có thể bỏ qua
 *.log
 *.tmp

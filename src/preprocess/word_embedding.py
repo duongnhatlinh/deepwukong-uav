@@ -87,36 +87,36 @@ def train_word_embedding(config_path: str):
         tokens_list.extend(token_l)
 
 
-    # UAV-specific token groups for better context
-    uav_contexts = [
-        # Flight control context
-        ['autopilot', 'flight_mode', 'stabilize', 'loiter', 'rtl', 'land', 'takeoff'],
-        ['motor', 'servo', 'actuator', 'throttle', 'yaw', 'pitch', 'roll'],
-        ['attitude', 'position', 'velocity', 'acceleration', 'waypoint'],
+    # # UAV-specific token groups for better context
+    # uav_contexts = [
+    #     # Flight control context
+    #     ['autopilot', 'flight_mode', 'stabilize', 'loiter', 'rtl', 'land', 'takeoff'],
+    #     ['motor', 'servo', 'actuator', 'throttle', 'yaw', 'pitch', 'roll'],
+    #     ['attitude', 'position', 'velocity', 'acceleration', 'waypoint'],
         
-        # Sensor context
-        ['gps', 'imu', 'gyro', 'accel', 'mag', 'baro', 'compass'],
-        ['sensor', 'reading', 'calibrate', 'filter', 'noise', 'drift'],
+    #     # Sensor context
+    #     ['gps', 'imu', 'gyro', 'accel', 'mag', 'baro', 'compass'],
+    #     ['sensor', 'reading', 'calibrate', 'filter', 'noise', 'drift'],
         
-        # Communication context
-        ['mavlink', 'telemetry', 'radio', 'uart', 'spi', 'i2c'],
-        ['packet', 'message', 'protocol', 'checksum', 'crc'],
+    #     # Communication context
+    #     ['mavlink', 'telemetry', 'radio', 'uart', 'spi', 'i2c'],
+    #     ['packet', 'message', 'protocol', 'checksum', 'crc'],
         
-        # Security context  
-        ['validate', 'check', 'bounds', 'overflow', 'buffer', 'input'],
-        ['malloc', 'free', 'memcpy', 'strcpy', 'sprintf', 'scanf'],
-    ]
+    #     # Security context  
+    #     ['validate', 'check', 'bounds', 'overflow', 'buffer', 'input'],
+    #     ['malloc', 'free', 'memcpy', 'strcpy', 'sprintf', 'scanf'],
+    # ]
 
 
-    for context in uav_contexts:
-        # Add as training sequences
-        tokens_list.append(context)
-        # Add permutations for better learning
-        for i in range(3):
-            import random
-            shuffled = context.copy()
-            random.shuffle(shuffled)
-            tokens_list.append(shuffled)
+    # for context in uav_contexts:
+    #     # Add as training sequences
+    #     tokens_list.append(context)
+    #     # Add permutations for better learning
+    #     for i in range(3):
+    #         import random
+    #         shuffled = context.copy()
+    #         random.shuffle(shuffled)
+    #         tokens_list.append(shuffled)
 
     print("training w2v...")
     num_workers = cpu_count(
