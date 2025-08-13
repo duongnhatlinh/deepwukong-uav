@@ -1,0 +1,114 @@
+# configs/dwk_revised.yaml - Based on actual token distribution analysis
+seed: 42
+num_workers: 2
+log_offline: false
+
+joern_path: "joern/joern-parse"
+split_token: false
+
+data_folder: "data"
+save_every_epoch: 1
+val_every_epoch: 1
+log_every_epoch: 5
+progress_bar_refresh_rate: 1
+
+dataset:
+  name: CWE119
+  name_word2vec: CWE119
+  token:
+    max_parts: 16 # ✅ INCREASED based on token analysis
+    is_wrapped: false #    Covers 92% of statements fully
+    is_splitted: false
+    vocabulary_size: 100000
+
+gnn:
+  name: "gcn"
+  w2v_path: "${data_folder}/${dataset.name}/w2v.wv"
+
+  # ✅ COMPENSATE for increased sequence length
+  embed_size: 256 # Keep reasonable
+  hidden_size: 256 # ⬇️ Reduce to compensate memory usage
+
+  pooling_ratio: 0.8
+  drop_out: 0.4
+
+  n_hidden_layers: 3
+  n_head: 6
+  n_gru: 2
+
+  edge_sample_ratio: 0.85
+
+  rnn:
+    hidden_size: 256 # Good for longer sequences
+    num_layers: 1 # Keep manageable
+    drop_out: 0.3
+    use_bi: true
+    activation: relu
+
+  use_attention_pooling: true # Important for long sequences
+  use_residual_connections: true
+  use_batch_norm: true
+
+classifier:
+  hidden_size: 512 # Strong classifier
+  n_hidden_layers: 2
+  n_classes: 2
+  drop_out: 0.5
+
+  use_layer_norm: true
+  activation: "gelu"
+  use_residual: true
+
+hyper_parameters:
+  vector_length: 128
+
+  n_epochs: 80
+  patience: 15 # ✅ Reasonable patience
+
+  # ✅ ADJUSTED for longer sequences
+  batch_size: 4 # ⬇️ Smaller batch due to longer sequences
+  test_batch_size: 6
+  reload_dataloader: true
+
+  clip_norm: 1.0
+  gradient_accumulation_steps: 16 # ⬆️ Increased to maintain effective batch=64
+
+  val_every_step: 1.0
+  log_every_n_steps: 25
+  progress_bar_refresh_rate: 1
+  resume_from_checkpoint: null
+  shuffle_data: true
+
+  # ✅ STRONG settings for imbalanced learning
+  use_focal_loss: true
+  focal_alpha: 0.7
+  focal_gamma: 3.0
+
+  use_label_smoothing: false
+  label_smoothing: 0.0
+
+  use_class_weights: true
+  class_weight_strategy: "inverse_freq"
+
+  optimizer: "AdamW"
+  learning_rate: 0.001
+  weight_decay: 0.00005
+
+  use_lr_scheduler: true
+  scheduler_type: "reduce_on_plateau"
+  patience_lr: 6
+  factor_lr: 0.6
+
+  decay_gamma: 0.95
+
+monitoring:
+  track_per_class_metrics: true
+  track_confusion_matrix: true
+  track_attention_weights: false
+
+  save_best_model: true
+  monitor_metric: "val_f1"
+  save_top_k: 3
+# ✅ MEMORY usage estimation
+# max_parts=20, batch_size=4, hidden_size=320:
+# Per batch: ~2.2-2.5GB VRAM (should fit in 4GB)

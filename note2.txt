@@ -1,0 +1,297 @@
+***CWE120 input validation
+1. ardupilot
+442fa60651: +
+032bfad79f: -
+
+2. PX4
+6f295d91d1: + (thiếu 2 file .hpp)
+eb76b0ce55: -
+
+3. Paparazzi
+4. LibrePilot
+5. Cleanflight
+
+
+*** CWE78 os command injection
+1. ardupilot
+914e6c5497: -
+
+2. PX4
+2f2c0440c4: -
+fe8deeeed9: -
+4a8044f338: - 
+2a8ef50df4: -
+2a8ef50df4: -
+cf62c892f9: - -
+
+3. Paparazzi
+c34df8abf: -
+
+4. LibrePilot
+5. Cleanflight
+
+*** CWE134 format string
+1. ardupilot
+eb283ce607: -
+2c14176f6a: -
+f429aae09e: -
+1547c65ff3: - 
+1547c65ff3: -
+1df00d879a: - - -
+8c60bfc1c3: -
+ff048990d9: - - 
+48922d76f5: -
+
+
+Tất cả các file còn lại không chứa lỗ hổng
+2. PX4
+96a33d1afc: -
+Tất cả các file còn lại không chứa lỗ hổng
+
+3. Paparazzi
+88f1489e2: -
+4. LibrePilot
+5. Cleanflight
+Tất cả các file còn lại không chứa lỗ hổng
+
+
+*** CWE362 race condition
+1. ardupilot
+9f0cbd881d: +
+720c2da807: - - - -
+fbd9685089: -
+e5577e0284: -
+a05acfc090: -
+b7fd04318a: -
+be01fcfdfd: - - - - - - -
+725a2227ca: + +
+5df9968fee: +
+c7b64dc448: +
+0b9c5d6dc1: +
+65f95325c3: -
+2d80dcd937: + - +
+989f8c5d41: + -
+c03551e496: + -
+5746943f50: +
+d16f31711e: + +
+32d8769823: + -
+e126b6d346: + -
+410b5825fb: - - - - - - -
+3556f33051: + -
+0dc22331d0: + -
+8080efbc6a: +
+aa49047ca5: +
+a2ac0875a7: + 
+91e5f56242: + -
+a832bdfd04: +
+7734b66230: -
+7d2b8b6bde: +
+f38fccd57c: -
+9d6a5c6f04: +
+dddaded8d4: +
+e34cdc6666: + -
+487bbc3ed2: - - - -
+2632a2e348: - +
+61406a32d2: - +
+e889886e07: +
+19bb96b9cb: +
+89676be825: + -
+3393a5c99e: +
+7a77832f45: + -
+b4fbda7a28: + 
+
+2. PX4
+Chưa làm vì quá dài
+
+3. Paparazzi
+409ae11f6: - - - +
+eb38af898: -
+daf6b6993: -
+c8f65f7d9: - +
+
+4. LibrePilot
+4d9f7a72d: +
+6daed46ec: + +
+0a34b786a: +
+93ec7c11a: +
+93ec7c11a: + - -
+93ec7c11a: + -
+ddf45b79c: +
+345b6578b: +
+a387532a9: -
+cdb521ac4: -
+cdb521ac4: +
+c4b6b1618: +
+77d798071: -
+
+5. Cleanflight
+0c7ae4946: +
+56e927835: - - - -
+930c6ce69: - - -
+
+
+*** CWE288 authentication bypass
+Ko có
+
+*** CWE200_information_exposure
+1. ardupilot
+0142265f67: +
+
+2. PX4
+3. Paparazzi
+4. LibrePilot
+5. Cleanflight
+
+*** CWE400_uncontrolled_resource_consumption
+1. ardupilot
+7aa6ba2c86: -
+
+2. PX4
+3. Paparazzi
+4. LibrePilot
+5. Cleanflight
+f7f350467: -
+
+
+- buffer overflow
+strncat,sizeof, read_block, StkRcvPacket, serialTxBytesFree, flushWriteByteBuffer, sscanf
+
+- buffer copy
+
+- out of bounds read
+validate, get_accel_error_count
+
+- integer overflow
+I2c.write
+
+- out of bounds write
+
+- use after free
+getupvalref, LoadString, LoadConstants, LoadDebug, LoadFunction, free, strncpy_noterm, WITH_SEMAPHORE, math::min, 
+logbuffer_free
+
+- memory leak
+file_content.remove_and_free, strdup, strcmp, lua_gc, send_text, strtok_r, malloc, delete, ut_assert_true, parameter_flashfs_free, snprintf,
+strncpy, pthread_attr_destroy, PX4_WARN, ::close, uavcan::PoolAllocator, mavlink_logbuffer_write, LL_FOREACH, uip_datahandler, uip_readahead
+
+
+
+
+
+
+*** Các bước đưa model vào web
+- Chuẩn bị dữ liệu
+    + Crawl data
+    + Chỉnh sửa data
+    + Tạo data đúng format:
+        1. SensiAPI nên tạo như thế nào thì phù hợp?
+        Mục đích của sensiAPI là dùng để đưa ra các API call nhạy cảm (dễ gây ra điểm yếu) cho việc tạo XFG
+        Nên lưa chọn:
+        - Các API call từ các dòng mã lỗi (dòng mã bị xóa từ việc commit)
+        - Các API call từ các dòng mã đã được chỉnh sửa (dòng mã được bổ sung)
+
+        2. Data làm thế nào để cân bằng?
+        - SensiAPI phù hợp - gen_sensiapi.py: lấy các API call dựa trên các hash commit
+        - Data chứa lỗ hổng
+        - Manifest xml file chứa thông tin về data: gen_manifest.py lấy từ file.json chứa thông tin commit lỗi
+- Tiền xử lý
+    + Tạo PDG -> XFG *** Cân bằng dữ liệu
+    + Symbolization 
+    + Embedding tokens
+    + Embedding graph
+- Chạy thử model
+    + Training model
+
+- Các file cần thiết để đưa vào web
+    + configs/dwk.yaml
+    + data/source-code/..
+    + joern
+    + src:
+        + datas
+        + joern/joern-parse.py
+        + data_generator.py
+        + detect.py
+        ....
+
+
+  test_accuracy         0.8719298243522644
+test_class_0_acc        0.9205217957496643
+test_class_1_acc        0.7835407853126526
+     test_f1            0.6539014577865601
+    test_fpr            0.07836256176233292
+    test_loss           0.02611413598060608
+ test_precision         0.6906432509422302
+   test_recall          0.6625730991363525
+
+
+
+
+*** Chuẩn bị dữ liệu cho 20 firmware UAV
+- Các CWE tồn tại chủ yếu trên firmware UAV:
++ CWE 119: buffer overflow
+func call buffer unsafe hoặc ntype == 'ArrayIndexing'
+
+'buffer_unsafe': [
+        'strcpy', 'strcat', 'sprintf', 'vsprintf', 'gets', 'scanf', 'sscanf',
+        'strncpy', 'strncat', 'snprintf', 'vsnprintf'  # These can be safer but still risky
+],
+
+comparisons: >=, <=
+#define
+memcpy
+memset
+tfp_sprintf
+
++ CWE 362: race condition
+
+
++ CWE 476: null pointer
+Chứa * hoặc NULL, null, = 0, nullptr 
+
+hoặc ntype == 'PtrMemberAccess'
+->
+lua_tolstring, luaL_checklstring
+_airspeed_pub, _subsys_pub
+
++ CWE 399: resource management
+func call resource_mgmt  
+'malloc', 'calloc', 'realloc', 'new', 'free', 'delete', open, close
+
++ CWE 120: buffer copy
+func call
+
++ CWE 190: integer overflow
+node operator '+', '-', '*', '/',
+node operator '<=', '>=', '==', '<', '>', '!='
+
++ CWE 125: out of bounds read
+ntype == 'ArrayIndexing'
+node operator '<=', '>=', '==', '<', '>', '!='
+
++ CWE 787: out of bounds write
+ntype == 'ArrayIndexing'
+node operator '<=', '>=', '==', '<', '>', '!='
+
++ CWE 416: use after free
+func call
+delete
+
++ CWE 415: double free
+func call
+
+check free in func
+nullptr
+->
+
+
+nullptr
+node operator '<=', '>=', '==', '<', '>', '!='
+
+*** UAV giống nhau
+Betaflight
+ButterFlight
+Cleanfilght
+EmuFlight
+RotorFlight
+
+

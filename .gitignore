@@ -1,0 +1,25 @@
+# Thư mục dữ liệu nặng
+data/
+!data/sensiAPI.txt
+model_pretrained/
+joern/
+pre_data/
+data_test/
+logs/
+test_file/
+notes.txt
+doc/
+
+vulnerable_commit/
+!vulnerable_commit/manifest_generator.py
+!vulnerable_commit/firmware_config.json
+!vulnerable_commit/gen_dataset/uav_extractor_dataset.py
+!vulnerable_commit/gen_sensiapi/gen_sensiapi_hybrid.py
+!vulnerable_commit/gen_sensiapi/uav_domain_sensiapi_generator.py
+!vulnerable_commit/gen_sensiapi/uav_sensiapi_extractor.py
+ts_logger/
+# Các file/thư mục khác có thể bỏ qua
+*.log
+*.tmp
+__pycache__/
+.DS_Store
