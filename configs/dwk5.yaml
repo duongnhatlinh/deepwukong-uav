@@ -41,10 +41,10 @@ gnn:
     activation: relu
 
 classifier:
-  hidden_size: 512
-  n_hidden_layers: 2
+  hidden_size: 768 # 512 -> 768
+  n_hidden_layers: 3
   n_classes: 2
-  drop_out: 0.5
+  drop_out: 0.3
 
 hyper_parameters:
   vector_length: 128

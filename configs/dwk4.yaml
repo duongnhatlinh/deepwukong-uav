@@ -27,8 +27,8 @@ gnn:
   w2v_path: "${data_folder}/${dataset.name}/256_w2v.wv"
   embed_size: 256
   hidden_size: 256
-  pooling_ratio: 0.8
-  drop_out: 0.5
+  pooling_ratio: 0.85
+  drop_out: 0.3
   n_hidden_layers: 3
   n_head: 3
   n_gru: 3

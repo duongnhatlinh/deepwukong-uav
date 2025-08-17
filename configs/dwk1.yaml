@@ -16,7 +16,7 @@ progress_bar_refresh_rate: 1
 dataset:
   name: UAV
   token:
-    max_parts: 16
+    max_parts: 20
     is_wrapped: false
     is_splitted: false
     vocabulary_size: 190000
@@ -24,8 +24,8 @@ dataset:
 gnn:
   # gcn, ggnn
   name: "gcn"
-  w2v_path: "${data_folder}/${dataset.name}/256_w2v.wv"
-  embed_size: 256
+  w2v_path: "${data_folder}/${dataset.name}/w2v.wv"
+  embed_size: 512
   hidden_size: 256
   pooling_ratio: 0.8
   drop_out: 0.5

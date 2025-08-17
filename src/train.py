@@ -5,9 +5,13 @@ import lightning as L
 from lightning import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 from lightning.pytorch.loggers import TensorBoardLogger
+import time
 
 def train(model: L.LightningModule, data_module: L.LightningDataModule,
           config: DictConfig):
+    
+    start_time = time.time()
+
     # Define logger
     model_name = model.__class__.__name__
     dataset_name = basename(config.dataset.name)
@@ -35,11 +39,13 @@ def train(model: L.LightningModule, data_module: L.LightningDataModule,
     )
     
     lr_logger = LearningRateMonitor("step")
+    accumulate_grad_batches = getattr(config.hyper_parameters, 'gradient_accumulation_steps', 1)
     
     # Setup trainer arguments
     trainer_args = {
         "max_epochs": config.hyper_parameters.n_epochs,
         "gradient_clip_val": config.hyper_parameters.clip_norm,
+        "accumulate_grad_batches": accumulate_grad_batches, 
         "deterministic": True,
         "val_check_interval": config.hyper_parameters.val_every_step,
         "log_every_n_steps": config.hyper_parameters.log_every_n_steps,
@@ -52,6 +58,11 @@ def train(model: L.LightningModule, data_module: L.LightningDataModule,
             checkpoint_callback
         ]
     }
+
+    # Log the configuration for gradient accumulation
+    print(f"Using gradient accumulation with {accumulate_grad_batches} steps")
+    effective_batch_size = config.hyper_parameters.batch_size * accumulate_grad_batches
+    print(f"Effective batch size: {effective_batch_size}")
     
     # Handle resume from checkpoint if specified
     if hasattr(config.hyper_parameters, 'resume_from_checkpoint') and \
@@ -65,6 +76,11 @@ def train(model: L.LightningModule, data_module: L.LightningDataModule,
     else:
         trainer = L.Trainer(**trainer_args)
         trainer.fit(model=model, datamodule=data_module)
-    
+
+    # Log total training time
+    end_time = time.time()
+    training_duration = end_time - start_time
+    print(f"⏱️ Total training time: {training_duration:.2f} seconds ({training_duration/60:.2f} minutes)")
+
     trainer.test(model=model, datamodule=data_module)
 

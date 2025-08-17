@@ -1,6 +1,5 @@
-# configs/dwk_lightweight.yaml
-seed: 42
-num_workers: 2  # ↓ Reduced for lower RAM usage
+seed: 7
+num_workers: 4
 log_offline: false
 
 # preprocess keys
@@ -11,125 +10,60 @@ split_token: false
 data_folder: "data"
 save_every_epoch: 1
 val_every_epoch: 1
-log_every_epoch: 10  # ↓ Less frequent logging
+log_every_epoch: 10
 progress_bar_refresh_rate: 1
 
 dataset:
   name: UAV
-  name_word2vec: UAV
   token:
-    max_parts: 16          # ↓ Reduced from 20
+    max_parts: 16
     is_wrapped: false
     is_splitted: false
-    vocabulary_size: 80000 # ↓ Reduced vocabulary
+    vocabulary_size: 190000
 
 gnn:
+  # gcn, ggnn
   name: "gcn"
-  w2v_path: "${data_folder}/${dataset.name}/w2v.wv"
-  
-  # ↓ Significantly reduced model capacity
-  embed_size: 128         # ↓ Half of original (256→128)
-  hidden_size: 256        # ↓ Half of original (512→256)
-  
-  # ↓ Reduced complexity
-  pooling_ratio: 0.7      # ↓ Keep fewer nodes
-  drop_out: 0.3           # ↓ Less dropout (faster training)
-  
-  # ↓ Shallower network
-  n_hidden_layers: 4      # ↓ Reduced from 4 to 2
-  n_head: 4               # ↓ Fewer attention heads (8→4)
-  n_gru: 1                # ↓ Reduced GRU layers
-  
-  edge_sample_ratio: 0.8  # ↓ Sample fewer edges
-  
-  # ↓ Lighter RNN
+  w2v_path: "${data_folder}/${dataset.name}/256_w2v.wv"
+  embed_size: 256
+  hidden_size: 256
+  pooling_ratio: 0.8
+  drop_out: 0.5
+  n_hidden_layers: 3
+  n_head: 3
+  n_gru: 3
+  edge_sample_ratio: 0.8
   rnn:
-    hidden_size: 128      # ↓ Half size (256→128)
-    num_layers: 2         # ↓ Single layer RNN
-    drop_out: 0.2         # ↓ Less dropout
-    use_bi: true          # Keep bidirectional
+    hidden_size: 512
+    num_layers: 2
+    drop_out: 0.4
+    use_bi: true
     activation: relu
-    
-  # Optional advanced features (can disable for speed)
-  use_attention_pooling: false   # ↓ Use simpler pooling
-  use_residual_connections: false # ↓ Disable residuals
-  use_batch_norm: false          # ↓ Disable batch norm
 
 classifier:
-  # ↓ Much smaller classifier
-  hidden_size: 256        # ↓ Quarter size (1024→256)
-  n_hidden_layers: 4      # ↓ Shallower (3→2)
+  hidden_size: 512
+  n_hidden_layers: 2
   n_classes: 2
-  drop_out: 0.4           # ↓ Moderate dropout
-  
-  # ↓ Simpler classifier
-  use_layer_norm: false   # ↓ Disable layer norm
-  activation: "relu"      # ↓ Simpler activation
-  use_residual: false     # ↓ No residuals
+  drop_out: 0.5
 
 hyper_parameters:
   vector_length: 128
 
-  # ↓ Faster training schedule
-  n_epochs: 50            # ↓ Fewer epochs (80→50)
-  patience: 10            # ↓ Less patience (15→10)
-  
-  # ↓ Smaller batches
-  batch_size: 8           # ↓ Smaller batch (12→8)
-  test_batch_size: 16     # ↓ Smaller test batch
+  n_epochs: 80
+  patience: 15
+  batch_size: 32
+  test_batch_size: 64
   reload_dataloader: true
-  
-  # ↓ Reduced gradient accumulation
-  clip_norm: 1.0          # ↓ Smaller clipping
-  gradient_accumulation_steps: 2  # ↓ Less accumulation (4→2)
-  
-  val_every_step: 1.0     # ↓ Validate once per epoch
-  log_every_n_steps: 50   # ↓ Less frequent logging
+  clip_norm: 5
+  val_every_step: 1.0
+  log_every_n_steps: 50
   progress_bar_refresh_rate: 1
   resume_from_checkpoint: null
   shuffle_data: true
-  
-  # Keep essential techniques
-  use_focal_loss: true
-  focal_alpha: 0.25
-  focal_gamma: 2.0
-  
-  use_label_smoothing: false  # ↓ Disable for simplicity
-  label_smoothing: 0.0
-  
-  use_class_weights: true
-  class_weight_strategy: "inverse_freq"
+  gradient_accumulation_steps: 2
 
-  # ↓ Conservative optimizer
-  optimizer: "Adam"       # ↓ Use Adam instead of AdamW
-  learning_rate: 0.0005   # ↓ Lower learning rate
-  weight_decay: 5e-4      # ↓ Less weight decay
-  
-  # ↓ Simpler scheduler
-  use_lr_scheduler: true
-  scheduler_type: "reduce_on_plateau"  # ↓ Simpler scheduler
-  patience_lr: 5
-  factor_lr: 0.7
-  
-  decay_gamma: 0.9
-
-# ↓ Minimal monitoring
-monitoring:
-  track_per_class_metrics: true
-  track_confusion_matrix: false   # ↓ Disable heavy monitoring
-  track_attention_weights: false
-  
-  visualize_embeddings: false     # ↓ Disable visualization
-  save_attention_maps: false
-  
-  save_best_model: true
-  monitor_metric: "val_f1"
-  save_top_k: 1                   # ↓ Save only best model
-
-# ↓ Disable data augmentation
-data_augmentation:
-  enabled: false
-
-# ↓ Minimal domain config
-domain_specific:
-  uav_api_weight: 1.2     # ↓ Reduced boost
+  optimizer: "Adam"
+  nesterov: true
+  learning_rate: 0.002
+  weight_decay: 0
+  decay_gamma: 0.95
